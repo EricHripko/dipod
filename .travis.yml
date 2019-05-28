@@ -15,6 +15,9 @@ before_install:
   # podman doesn't currently ship with varlink interface
   # https://github.com/containers/libpod/issues/3027
   # Have to build it from scratch...
+  - sudo add-apt-repository ppa:kubuntu-ppa/backports -y
+  - sudo apt-get update -q
+  # ^- for libgpgme-dev
   - >
     sudo apt-get install
     btrfs-tools
