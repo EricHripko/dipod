@@ -11,6 +11,36 @@ before_install:
   - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable" -y
   - sudo apt-get update -q
   - sudo apt-get install docker-ce-cli -y
+  
+  # podman doesn't currently ship with varlink interface
+  # https://github.com/containers/libpod/issues/3027
+  # Have to build it from scratch...
+  ->
+    sudo apt-get install \
+    btrfs-tools \
+    git \
+    golang-go \
+    go-md2man \
+    iptables \
+    libassuan-dev \
+    libc6-dev \
+    libdevmapper-dev \
+    libglib2.0-dev \
+    libgpgme-dev \
+    libgpg-error-dev \
+    libostree-dev \
+    libprotobuf-dev \
+    libprotobuf-c0-dev \
+    libseccomp-dev \
+    libselinux1-dev \
+    libsystemd-dev \
+    pkg-config \
+    runc \
+    uidmap -y
+  - git clone https://github.com/containers/libpod/ $GOPATH/src/github.com/containers/libpod
+  - cd $GOPATH/src/github.com/containers/libpod
+  - make BUILDTAGS="selinux seccomp varlink"
+  - sudo make install PREFIX=
 before_script:
+  # Stop Docker daemon to ensure that we're hitting a proxy
   - sudo service docker stop
-  - docker version
