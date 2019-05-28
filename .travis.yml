@@ -15,7 +15,7 @@ before_install:
   # podman doesn't currently ship with varlink interface
   # https://github.com/containers/libpod/issues/3027
   # Have to build it from scratch...
-  ->
+  - >
     sudo apt-get install \
     btrfs-tools \
     git \
