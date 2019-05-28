@@ -50,6 +50,7 @@ before_install:
   - cd $GOPATH/src/github.com/containers/libpod
   - GO111MODULE=auto make BUILDTAGS="selinux seccomp varlink"
   - sudo make install PREFIX=
+  - rm -rf $GOPATH/src/github.com/containers/libpod
 before_script:
   # Stop Docker daemon to ensure that we're hitting a proxy
   - sudo service docker stop
