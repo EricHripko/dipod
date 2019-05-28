@@ -1,7 +1,13 @@
+dist: xenial
 language: go
 go:
 - 1.11.x
 - 1.12.x
 env:
  - GO111MODULE=on
- 
+before_install:
+  # Install Docker CLI
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable" -y
+  - sudo apt-get update -q
+  - sudo apt-get install docker-ce-cli -y
