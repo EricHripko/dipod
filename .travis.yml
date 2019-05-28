@@ -48,8 +48,8 @@ before_install:
     uidmap -y
   - git clone https://github.com/containers/libpod/ $GOPATH/src/github.com/containers/libpod
   - cd $GOPATH/src/github.com/containers/libpod
-  - make BUILDTAGS="selinux seccomp varlink"
-  - sudo GO111MODULE=auto make install PREFIX=
+  - GO111MODULE=auto make BUILDTAGS="selinux seccomp varlink"
+  - sudo make install PREFIX=
 before_script:
   # Stop Docker daemon to ensure that we're hitting a proxy
   - sudo service docker stop
