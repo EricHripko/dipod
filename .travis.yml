@@ -16,26 +16,26 @@ before_install:
   # https://github.com/containers/libpod/issues/3027
   # Have to build it from scratch...
   - >
-    sudo apt-get install \
-    btrfs-tools \
-    git \
-    golang-go \
-    go-md2man \
-    iptables \
-    libassuan-dev \
-    libc6-dev \
-    libdevmapper-dev \
-    libglib2.0-dev \
-    libgpgme-dev \
-    libgpg-error-dev \
-    libostree-dev \
-    libprotobuf-dev \
-    libprotobuf-c0-dev \
-    libseccomp-dev \
-    libselinux1-dev \
-    libsystemd-dev \
-    pkg-config \
-    runc \
+    sudo apt-get install
+    btrfs-tools
+    git
+    golang-go
+    go-md2man
+    iptables
+    libassuan-dev
+    libc6-dev
+    libdevmapper-dev
+    libglib2.0-dev
+    libgpgme-dev
+    libgpg-error-dev
+    libostree-dev
+    libprotobuf-dev
+    libprotobuf-c0-dev
+    libseccomp-dev
+    libselinux1-dev
+    libsystemd-dev
+    pkg-config
+    runc
     uidmap -y
   - git clone https://github.com/containers/libpod/ $GOPATH/src/github.com/containers/libpod
   - cd $GOPATH/src/github.com/containers/libpod
