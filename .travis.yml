@@ -11,4 +11,6 @@ before_install:
   - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable" -y
   - sudo apt-get update -q
   - sudo apt-get install docker-ce-cli -y
+before_script:
+  - sudo service docker stop
   - docker version
