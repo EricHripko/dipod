@@ -18,6 +18,10 @@ before_install:
   - sudo add-apt-repository ppa:kubuntu-ppa/backports -y
   - sudo apt-get update -q
   # ^- for libgpgme-dev
+  - sudo apt-get install linuxmint-keyring
+  - sudo add-apt-repository "deb http://packages.linuxmint.com/ sylvia import" -y
+  - sudo apt-get update -q
+  # ^- for libostree-dev
   - >
     sudo apt-get install
     btrfs-tools
