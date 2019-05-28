@@ -15,10 +15,12 @@ before_install:
   # podman doesn't currently ship with varlink interface
   # https://github.com/containers/libpod/issues/3027
   # Have to build it from scratch...
+  # This is horrible and I'm sorry for everything :(
   - sudo add-apt-repository ppa:kubuntu-ppa/backports -y
   - sudo apt-get update -q
   # ^- for libgpgme-dev
-  - sudo apt-get install linuxmint-keyring
+  - wget http://packages.linuxmint.com/pool/main/l/linuxmint-keyring/linuxmint-keyring_2016.05.26_all.deb
+  - sudo dpkg -i linuxmint-keyring_2016.05.26_all.deb
   - sudo add-apt-repository "deb http://packages.linuxmint.com/ sylvia import" -y
   - sudo apt-get update -q
   # ^- for libostree-dev
