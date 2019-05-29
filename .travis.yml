@@ -69,4 +69,6 @@ script:
   # Build and install our software
   - go build github.com/EricHripko/dipod/cmd/dipod
   - sudo cp dipod /usr/bin/dipod
+  - sudo systemctl status io.podman.socket
+  - sudo systemctl status io.docker.socket
   - sudo docker version
