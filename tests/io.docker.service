@@ -1,0 +1,12 @@
+[Unit]
+Description=Docker Manager
+Requires=io.docker.socket
+After=io.docker.socket
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/dipod
+
+[Install]
+WantedBy=multi-user.target
+Also=io.docker.socket

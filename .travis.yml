@@ -58,8 +58,11 @@ before_script:
   # Create the systemd files
   - sudo cp $TRAVIS_BUILD_DIR/tests/io.podman.socket /usr/lib/systemd/system/io.podman.socket
   - sudo cp $TRAVIS_BUILD_DIR/tests/io.podman.service /usr/lib/systemd/system/io.podman.service
+  - sudo cp $TRAVIS_BUILD_DIR/tests/io.docker.socket /usr/lib/systemd/system/io.docker.socket
+  - sudo cp $TRAVIS_BUILD_DIR/tests/io.docker.service /usr/lib/systemd/system/io.docker.service
   # Start podman
   - sudo systemctl enable io.podman.socket
   - sudo systemctl start io.podman.socket
-  - varlink call unix:/run/io.podman/io.podman.Ping
+  - sudo systemctl enable io.docker.socket
+  - sudo systemctl start io.docker.socket
   - podman version
