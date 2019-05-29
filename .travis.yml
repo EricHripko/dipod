@@ -56,8 +56,8 @@ before_script:
   # Stop Docker daemon to ensure that we're hitting a proxy
   - sudo service docker stop
   # Create the systemd files
-  - sudo cp $TRAVIS_BUILD_DIR/tests/io.podman.socket >> /usr/lib/systemd/system/io.podman.socket
-  - sudo cp $TRAVIS_BUILD_DIR/tests/io.podman.service >> /usr/lib/systemd/system/io.podman.service
+  - sudo cp $TRAVIS_BUILD_DIR/tests/io.podman.socket /usr/lib/systemd/system/io.podman.socket
+  - sudo cp $TRAVIS_BUILD_DIR/tests/io.podman.service /usr/lib/systemd/system/io.podman.service
   # Start podman
   - sudo systemctl enable io.podman.socket
   - sudo systemctl start io.podman.socket
