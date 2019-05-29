@@ -56,22 +56,8 @@ before_script:
   # Stop Docker daemon to ensure that we're hitting a proxy
   - sudo service docker stop
   # Create the systemd files
-  - sudo echo "[Unit]" >> /usr/lib/systemd/system/io.podman.socket
-  - sudo echo "Description=Pod Manager Socket" >> /usr/lib/systemd/system/io.podman.socket
-  - sudo echo "[Socket]" >> /usr/lib/systemd/system/io.podman.socket
-  - sudo echo "ListenStream=/run/podman/io.podman" >> /usr/lib/systemd/system/io.podman.socket
-  - sudo echo "[Install]" >> /usr/lib/systemd/system/io.podman.socket
-  - sudo echo "WantedBy=sockets.target" >> /usr/lib/systemd/system/io.podman.socket
-  - sudo echo "[Unit]" >> /usr/lib/systemd/system/io.podman.service
-  - sudo echo "Description=Pod Manager" >> /usr/lib/systemd/system/io.podman.service
-  - sudo echo "Requires=io.podman.socket" >> /usr/lib/systemd/system/io.podman.service
-  - sudo echo "After=io.podman.socket" >> /usr/lib/systemd/system/io.podman.service
-  - sudo echo "[Service]" >> /usr/lib/systemd/system/io.podman.service
-  - sudo echo "Type=simple" >> /usr/lib/systemd/system/io.podman.service
-  - sudo echo "ExecStart=/usr/bin/podman --varlink=unix:/run/io.podman" >> /usr/lib/systemd/system/io.podman.service
-  - sudo echo "[Install]" >> /usr/lib/systemd/system/io.podman.service
-  - sudo echo "WantedBy=multi-user.target" >> /usr/lib/systemd/system/io.podman.service
-  - sudo echo "Also=io.podman.socket" >> /usr/lib/systemd/system/io.podman.service
+  - sudo cp $TRAVIS_BUILD_DIR/tests/io.podman.socket >> /usr/lib/systemd/system/io.podman.socket
+  - sudo cp $TRAVIS_BUILD_DIR/tests/io.podman.service >> /usr/lib/systemd/system/io.podman.service
   # Start podman
   - sudo systemctl enable io.podman.socket
   - sudo systemctl start io.podman.socket
