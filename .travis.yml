@@ -65,4 +65,4 @@ before_script:
   - sudo systemctl start io.podman.socket
   - sudo systemctl enable io.docker.socket
   - sudo systemctl start io.docker.socket
-  - docker version
+  - sudo docker version
