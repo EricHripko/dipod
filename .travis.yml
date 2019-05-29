@@ -71,4 +71,4 @@ script:
   - sudo cp dipod /usr/bin/dipod
   - sudo systemctl status io.podman.socket
   - sudo systemctl status io.docker.socket
-  - sudo docker version || journalctl
+  - sudo docker version || sudo journalctl
