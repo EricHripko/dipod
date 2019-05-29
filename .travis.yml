@@ -65,4 +65,8 @@ before_script:
   - sudo systemctl start io.podman.socket
   - sudo systemctl enable io.docker.socket
   - sudo systemctl start io.docker.socket
+script:
+  # Build and install our software
+  - go build github.com/EricHripko/dipod/cmd/dipod
+  - sudo cp dipod /usr/bin/dipod
   - sudo docker version
