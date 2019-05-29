@@ -1,0 +1,12 @@
+[Unit]
+Description=Pod Manager
+Requires=io.podman.socket
+After=io.podman.socket
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/podman --varlink=unix:/run/io.podman
+
+[Install]
+WantedBy=multi-user.target
+Also=io.podman.socket
