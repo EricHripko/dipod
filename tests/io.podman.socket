@@ -1,8 +1,0 @@
-[Unit]
-Description=Pod Manager Socket
-
-[Socket]
-ListenStream=/run/podman/io.podman
-
-[Install]
-WantedBy=sockets.target
