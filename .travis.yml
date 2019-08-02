@@ -26,11 +26,19 @@ before_install:
   # ^- for libostree-dev
   - >
     sudo apt-get install
+<<<<<<< Updated upstream
+=======
+    bats
+>>>>>>> Stashed changes
     btrfs-tools
     git
     golang-go
     go-md2man
     iptables
+<<<<<<< Updated upstream
+=======
+    jq
+>>>>>>> Stashed changes
     libassuan-dev
     libc6-dev
     libdevmapper-dev
@@ -73,4 +81,5 @@ script:
   - sudo cp dipod /usr/bin/dipod
   - sudo systemctl status io.podman.socket
   - sudo systemctl status io.docker.socket
-  - sudo docker version || sudo journalctl
+  # Run tests
+  - sudo bats tests/cli
