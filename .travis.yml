@@ -60,6 +60,9 @@ before_script:
   # Create the systemd files
   - sudo cp $TRAVIS_BUILD_DIR/tests/io.docker.socket /usr/lib/systemd/system/io.docker.socket
   - sudo cp $TRAVIS_BUILD_DIR/tests/io.docker.service /usr/lib/systemd/system/io.docker.service
+  # Start podman
+  - sudo systemctl enable io.podman.socket
+  - sudo systemctl start io.podman.socket
   # Start dipod
   - sudo systemctl enable io.docker.socket
   - sudo systemctl start io.docker.socket
