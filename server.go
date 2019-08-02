@@ -17,11 +17,15 @@ func Serve() {
 	)
 	listeners, err = activation.Listeners()
 	if err != nil {
-		listener = listeners[0]
+		log.WithError(err).Warn("systemd activation fail")
 	}
-	listener, err = net.Listen("unix", MobyUnixAddress)
-	if err != nil {
-		log.WithError(err).Fatal("unix listen fail")
+	if len(listeners) > 0 {
+		listener = listeners[0]
+	} else {
+		listener, err = net.Listen("unix", MobyUnixAddress)
+		if err != nil {
+			log.WithError(err).Fatal("unix listen fail")
+		}
 	}
 	defer listener.Close()
 	log.WithField("address", listener.Addr()).Info("unix listen")
