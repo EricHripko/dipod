@@ -4,17 +4,27 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/coreos/go-systemd/activation"
 	log "github.com/sirupsen/logrus"
 )
 
 // Serve starts a Moby Engine proxy.
 func Serve() {
-	listener, err := net.Listen("unix", MobyUnixAddress)
+	var (
+		listeners []net.Listener
+		listener  net.Listener
+		err       error
+	)
+	listeners, err = activation.Listeners()
+	if err != nil {
+		listener = listeners[0]
+	}
+	listener, err = net.Listen("unix", MobyUnixAddress)
 	if err != nil {
 		log.WithError(err).Fatal("unix listen fail")
 	}
 	defer listener.Close()
-	log.WithField("address", MobyUnixAddress).Info("unix listen")
+	log.WithField("address", listener.Addr()).Info("unix listen")
 
 	// unhandled request
 	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
