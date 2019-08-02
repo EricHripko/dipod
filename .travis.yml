@@ -1,0 +1,76 @@
+dist: xenial
+language: go
+go:
+- 1.11.x
+- 1.12.x
+env:
+ - GO111MODULE=on
+before_install:
+  # Install Docker CLI
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable" -y
+  - sudo apt-get update -q
+  - sudo apt-get install docker-ce-cli -y
+  
+  # podman doesn't currently ship with varlink interface
+  # https://github.com/containers/libpod/issues/3027
+  # Have to build it from scratch...
+  # This is horrible and I'm sorry for everything :(
+  - sudo add-apt-repository ppa:kubuntu-ppa/backports -y
+  - sudo apt-get update -q
+  # ^- for libgpgme-dev
+  - wget http://packages.linuxmint.com/pool/main/l/linuxmint-keyring/linuxmint-keyring_2016.05.26_all.deb
+  - sudo dpkg -i linuxmint-keyring_2016.05.26_all.deb
+  - sudo add-apt-repository "deb http://packages.linuxmint.com/ sylvia import" -y
+  - sudo apt-get update -q
+  # ^- for libostree-dev
+  - >
+    sudo apt-get install
+    btrfs-tools
+    git
+    golang-go
+    go-md2man
+    iptables
+    libassuan-dev
+    libc6-dev
+    libdevmapper-dev
+    libglib2.0-dev
+    libgpgme-dev
+    libgpg-error-dev
+    libostree-dev
+    libprotobuf-dev
+    libprotobuf-c0-dev
+    libseccomp-dev
+    libselinux1-dev
+    libsystemd-dev
+    pkg-config
+    runc
+    uidmap -y
+  - git clone https://github.com/containers/libpod/ $GOPATH/src/github.com/containers/libpod
+  - cd $GOPATH/src/github.com/containers/libpod
+  - GO111MODULE=auto make BUILDTAGS="selinux seccomp varlink"
+  - sudo make install PREFIX=
+  # Ensure we're in the directory with our sources
+  - cd $TRAVIS_BUILD_DIR
+before_script:
+  # Stop Docker daemon to ensure that we're hitting a proxy
+  - sudo service docker stop
+  - sudo rm -f /var/run/docker.sock
+  # podman's systemd files expect a system install, but ours is local
+  - sudo ln -s /usr/bin/podman /usr/local/bin/podman
+  # Create the systemd files
+  - sudo cp $TRAVIS_BUILD_DIR/tests/io.docker.socket /usr/lib/systemd/system/io.docker.socket
+  - sudo cp $TRAVIS_BUILD_DIR/tests/io.docker.service /usr/lib/systemd/system/io.docker.service
+  # Start podman
+  - sudo systemctl enable io.podman.socket
+  - sudo systemctl start io.podman.socket
+  # Start dipod
+  - sudo systemctl enable io.docker.socket
+  - sudo systemctl start io.docker.socket
+script:
+  # Build and install our software
+  - go build github.com/EricHripko/dipod/cmd/dipod
+  - sudo cp dipod /usr/bin/dipod
+  - sudo systemctl status io.podman.socket
+  - sudo systemctl status io.docker.socket
+  - sudo docker version || sudo journalctl
