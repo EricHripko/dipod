@@ -56,7 +56,7 @@ before_script:
   # Stop Docker daemon to ensure that we're hitting a proxy
   - sudo service docker stop
   # podman's systemd files expect a system install, but ours is local
-  - ln -s /usr/bin/podman /usr/local/bin/podman
+  - sudo ln -s /usr/bin/podman /usr/local/bin/podman
   # Create the systemd files
   - sudo cp $TRAVIS_BUILD_DIR/tests/io.docker.socket /usr/lib/systemd/system/io.docker.socket
   - sudo cp $TRAVIS_BUILD_DIR/tests/io.docker.service /usr/lib/systemd/system/io.docker.service
