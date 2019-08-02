@@ -55,6 +55,7 @@ before_install:
 before_script:
   # Stop Docker daemon to ensure that we're hitting a proxy
   - sudo service docker stop
+  - rm -f /var/run/docker.sock
   # podman's systemd files expect a system install, but ours is local
   - sudo ln -s /usr/bin/podman /usr/local/bin/podman
   # Create the systemd files
