@@ -1,7 +1,9 @@
 #!/usr/bin/env bats
 
 function cleanup {
-    podman rmi $(podman images --filter="reference=docker.io/library/ubuntu" -q) 
+    podman rmi -f docker.io/library/ubuntu:latest || true
+    podman rmi -f docker.io/library/ubuntu:cosmic || true
+    podman rmi -f dipod-test || true
 }
 
 @test "images: list images by name and tag" {
@@ -33,6 +35,24 @@ function cleanup {
     [[ "$(head -1 <<< $output | jq -r ".Tag")" == "latest" ]]
     [[ "$(tail -1 <<< $output | jq -r ".Repository")" == "ubuntu" ]]
     [[ "$(tail -1 <<< $output | jq -r ".Tag")" == "cosmic" ]]
+}
+
+@test "images: list images by label" {
+    # Arrange
+    label="dipod.is.awesome=yes"
+    podman rmi dipod-test || true
+    podman build \
+        --label $label \
+        --tag dipod-test \
+        $BATS_TEST_DIRNAME/images-list-labels
+    id=$(podman inspect dipod-test -f "{{.Id}}")
+
+    # Act
+    output=$(docker images --filter="label=$label" --quiet)
+    echo $output
+
+    # Assert
+    [[ $id =~ ^$output ]]
 }
 
 @test "images: list images with digests" {
