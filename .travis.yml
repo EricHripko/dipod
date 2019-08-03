@@ -50,16 +50,19 @@ before_install:
     uidmap -y
   - git clone https://github.com/containers/libpod/ $GOPATH/src/github.com/containers/libpod
   - cd $GOPATH/src/github.com/containers/libpod
-  - GO111MODULE=auto make BUILDTAGS="selinux seccomp varlink"
-  - sudo make install PREFIX=
+  - GO111MODULE=auto make BUILDTAGS="selinux seccomp varlink systemd"
+  - sudo make install PREFIX=/usr
+  # Install podman runtime dependencies
+  - sudo add-apt-repository ppa:projectatomic/ppa -y
+  - sudo apt-get update -q
+  - sudo apt-get install conmon -y
+
   # Ensure we're in the directory with our sources
   - cd $TRAVIS_BUILD_DIR
 before_script:
   # Stop Docker daemon to ensure that we're hitting a proxy
   - sudo service docker stop
   - sudo rm -f /var/run/docker.sock
-  # podman's systemd files expect a system install, but ours is local
-  - sudo ln -s /usr/bin/podman /usr/local/bin/podman
   # Create the systemd files
   - sudo cp $TRAVIS_BUILD_DIR/tests/io.docker.socket /usr/lib/systemd/system/io.docker.socket
   - sudo cp $TRAVIS_BUILD_DIR/tests/io.docker.service /usr/lib/systemd/system/io.docker.service
