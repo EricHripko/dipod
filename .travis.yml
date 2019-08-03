@@ -51,15 +51,13 @@ before_install:
   - git clone https://github.com/containers/libpod/ $GOPATH/src/github.com/containers/libpod
   - cd $GOPATH/src/github.com/containers/libpod
   - GO111MODULE=auto make BUILDTAGS="selinux seccomp varlink systemd"
-  - sudo make install PREFIX=
+  - sudo make install PREFIX=/usr
   # Ensure we're in the directory with our sources
   - cd $TRAVIS_BUILD_DIR
 before_script:
   # Stop Docker daemon to ensure that we're hitting a proxy
   - sudo service docker stop
   - sudo rm -f /var/run/docker.sock
-  # podman's systemd files expect a system install, but ours is local
-  - sudo ln -s /usr/local/bin/podman /usr/bin/podman
   # Create the systemd files
   - sudo cp $TRAVIS_BUILD_DIR/tests/io.docker.socket /usr/lib/systemd/system/io.docker.socket
   - sudo cp $TRAVIS_BUILD_DIR/tests/io.docker.service /usr/lib/systemd/system/io.docker.service
