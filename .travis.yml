@@ -50,7 +50,7 @@ before_install:
     uidmap -y
   - git clone https://github.com/containers/libpod/ $GOPATH/src/github.com/containers/libpod
   - cd $GOPATH/src/github.com/containers/libpod
-  - GO111MODULE=auto make BUILDTAGS="selinux seccomp varlink"
+  - GO111MODULE=auto make BUILDTAGS="selinux seccomp varlink systemd"
   - sudo make install PREFIX=
   # Ensure we're in the directory with our sources
   - cd $TRAVIS_BUILD_DIR
