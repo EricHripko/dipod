@@ -3,6 +3,7 @@
 @test "system: version" {
     # Arrange/Act
     output=$(docker version --format '{{json .Server}}')
+    echo $output
 
     # Assert
     [[ "$(jq -r ".Version" <<< $output)" =~ dipod$ ]]
@@ -23,8 +24,10 @@
 @test "system: info" {
     # Arrange/Act
     output=$(docker system info --format '{{json .}}')
+    echo $output
 
     # Assert
+    [[ "$(jq -r ".Driver" <<< $output)" == "overlay" ]]
     [[ "$(jq -r ".MemoryLimit" <<< $output)" == "true" ]]
     [[ "$(jq -r ".SwapLimit" <<< $output)" == "true" ]]
     [[ "$(jq -r ".KernelMemory" <<< $output)" == "true" ]]
