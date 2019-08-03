@@ -59,7 +59,7 @@ before_script:
   - sudo service docker stop
   - sudo rm -f /var/run/docker.sock
   # podman's systemd files expect a system install, but ours is local
-  - sudo ln -s /usr/bin/podman /usr/local/bin/podman
+  - sudo ln -s /usr/local/bin/podman /usr/bin/podman
   # Create the systemd files
   - sudo cp $TRAVIS_BUILD_DIR/tests/io.docker.socket /usr/lib/systemd/system/io.docker.socket
   - sudo cp $TRAVIS_BUILD_DIR/tests/io.docker.service /usr/lib/systemd/system/io.docker.service
