@@ -25,7 +25,6 @@
     output=$(docker system info --format '{{json .}}')
 
     # Assert
-    [[ "$(jq -r ".Driver" <<< $output)" == "overlay" ]]
     [[ "$(jq -r ".MemoryLimit" <<< $output)" == "true" ]]
     [[ "$(jq -r ".SwapLimit" <<< $output)" == "true" ]]
     [[ "$(jq -r ".KernelMemory" <<< $output)" == "true" ]]
