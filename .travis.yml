@@ -52,6 +52,11 @@ before_install:
   - cd $GOPATH/src/github.com/containers/libpod
   - GO111MODULE=auto make BUILDTAGS="selinux seccomp varlink systemd"
   - sudo make install PREFIX=/usr
+  # Install podman runtime dependencies
+  - sudo add-apt-repository ppa:projectatomic/ppa -y
+  - sudo apt-get update -q
+  - sudo apt-get install conmon -y
+
   # Ensure we're in the directory with our sources
   - cd $TRAVIS_BUILD_DIR
 before_script:
