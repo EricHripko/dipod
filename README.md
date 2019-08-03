@@ -1,6 +1,6 @@
 # dipod
 [![Build Status](https://travis-ci.org/EricHripko/dipod.svg?branch=master)](https://travis-ci.org/EricHripko/dipod)
-[![Go Report](https://goreportcard.com/badge/github.com/EricHripko/dipod)](https://goreportcard.com/badge/github.com/EricHripko/dipod)
+[![Go Report](https://goreportcard.com/badge/github.com/EricHripko/dipod)](https://goreportcard.com/report/github.com/EricHripko/dipod)
 
 `dipod` is a Docker Interface for PODman. Why? Because it's easier to proxy than to rewrite Docker-reliant software.
 `dipod` also eases migration of workflows and CI pipelines away from Docker.
