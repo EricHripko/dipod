@@ -80,4 +80,3 @@ script:
   - sudo systemctl status io.docker.socket
   # Run tests
   - sudo bats tests/cli
-  - sudo journalctl
