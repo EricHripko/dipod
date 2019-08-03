@@ -6,11 +6,13 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/EricHripko/dipod/iopodman"
 	"github.com/docker/docker/pkg/jsonmessage"
 
+	"github.com/docker/docker/api/types/filters"
 	"github.com/moby/moby/api/types"
 	log "github.com/sirupsen/logrus"
 	"github.com/varlink/go/varlink"
@@ -18,10 +20,59 @@ import (
 
 // ImageList is a handler function for /images/json.
 func ImageList(res http.ResponseWriter, req *http.Request) {
-	log.Debug("image list")
+	all := req.FormValue("all")
+	if all == "1" || all == "true" {
+		WriteError(res, ErrNotImplemented)
+		return
+	}
+	filters, err := filters.FromParam(req.FormValue("filters"))
+	if err != nil {
+		log.WithError(err).Warn("image list filter fail")
+	}
+	log.WithField("filters", filters).WithField("all", all).Debug("image list")
+
 	srcs, _ := iopodman.ListImages().Call(podman)
 	var imgs []types.ImageSummary
 	for _, src := range srcs {
+		if filters.Include("label") && !filters.MatchKVList("label", src.Labels) {
+			continue
+		}
+		if filters.Include("reference") {
+			matched := false
+			for _, search := range filters.Get("reference") {
+				if matched {
+					break
+				}
+
+				params := strings.Split(search, ":")
+				var (
+					id  string
+					tag string
+				)
+				if len(params) == 0 {
+					continue
+				}
+				id = params[0]
+				if len(params) > 1 {
+					tag = params[1]
+				}
+				for _, rt := range src.RepoTags {
+					if strings.HasPrefix(rt, id+":") {
+						if tag == "" {
+							matched = true
+						} else {
+							if strings.HasSuffix(rt, ":"+tag) {
+								matched = true
+							}
+						}
+					}
+				}
+			}
+			if !matched {
+				continue
+			}
+		}
+
 		img := types.ImageSummary{
 			Containers:  src.Containers,
 			Created:     0,
@@ -33,6 +84,12 @@ func ImageList(res http.ResponseWriter, req *http.Request) {
 			Size:        src.Size,
 			SharedSize:  0,
 			VirtualSize: src.VirtualSize,
+		}
+		if img.RepoTags == nil {
+			img.RepoTags = []string{"<none>:<none>"}
+		}
+		if img.RepoDigests == nil {
+			img.RepoDigests = []string{"<none>@<none>"}
 		}
 		if created, err := time.Parse(time.RFC3339, src.Created); err == nil {
 			img.Created = created.Unix()
@@ -80,7 +137,13 @@ func ImageBuild(res http.ResponseWriter, req *http.Request) {
 	}
 
 	log.WithField("info", in).Debug("build")
-	recv, _ := iopodman.BuildImage().Send(podman, varlink.More, in)
+	recv, err := iopodman.BuildImage().Send(podman, varlink.More, in)
+	if err != nil {
+		StreamError(res, err)
+		log.
+			WithField("err", ErrorMessage(err)).
+			Error("image build fail")
+	}
 	flusher, hasFlusher := res.(http.Flusher)
 	for {
 		status, flags, err := recv()
