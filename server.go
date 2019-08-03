@@ -38,6 +38,7 @@ func Serve() {
 	// system
 	http.HandleFunc("/_ping", Ping)
 	http.HandleFunc("/v1.26/version", Version)
+	http.HandleFunc("/v1.26/info", SystemInfo)
 	// images
 	http.HandleFunc("/v1.26/images/json", ImageList)
 	http.HandleFunc("/v1.26/build", ImageBuild)
