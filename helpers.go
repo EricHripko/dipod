@@ -2,15 +2,26 @@ package dipod
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/moby/moby/api/types"
 )
 
+// ErrNotImplemented is returned when functionality requested was not
+// implemented yet.
+var ErrNotImplemented = errors.New("dipod: not implemented")
+
 // WriteError returns an error response to the client.
 func WriteError(res http.ResponseWriter, err error) {
-	JSONResponse(res, types.ErrorResponse{Message: ErrorMessage(err)})
+	res.WriteHeader(http.StatusInternalServerError)
+	err = json.NewEncoder(res).Encode(
+		types.ErrorResponse{Message: ErrorMessage(err)},
+	)
+	if err != nil {
+		res.Write([]byte(err.Error()))
+	}
 }
 
 // StreamError sends an error response to the client. Make sure to flush after.
