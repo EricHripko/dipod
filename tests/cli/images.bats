@@ -31,6 +31,7 @@ function cleanup {
     echo $output
 
     # Assert
+    echo "$(head -1 <<< $output | jq -r ".Repository")"
     [[ "$(head -1 <<< $output | jq -r ".Repository")" == "ubuntu" ]]
     [[ "$(head -1 <<< $output | jq -r ".Tag")" == "latest" ]]
     [[ "$(tail -1 <<< $output | jq -r ".Repository")" == "ubuntu" ]]
