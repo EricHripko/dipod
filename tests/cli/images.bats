@@ -12,10 +12,10 @@ function cleanup {
     podman pull docker.io/library/ubuntu:latest
 
     # Act
-    output=$(docker images --filter="reference=docker.io/library/ubuntu:latest" --format '{{json .}}')
-    echo $output
+    run docker images --filter="reference=docker.io/library/ubuntu:latest" --format '{{json .}}'
 
     # Assert
+    [[ "$status" -eq 0 ]]
     [[ "$(jq -r ".Repository" <<< $output)" == "ubuntu" ]]
     [[ "$(jq -r ".Tag" <<< $output)" == "latest" ]]
 }
@@ -27,15 +27,15 @@ function cleanup {
     podman pull docker.io/library/ubuntu:cosmic
 
     # Act
-    output=$(docker images --filter="reference=docker.io/library/ubuntu" --format '{{json .}}')
+    run docker images --filter="reference=docker.io/library/ubuntu" --format '{{json .}}'
     echo $output
 
     # Assert
-    echo "$(head -1 <<< $output | jq -r ".Repository")"
-    [[ "$(head -1 <<< $output | jq -r ".Repository")" == "ubuntu" ]]
-    [[ "$(head -1 <<< $output | jq -r ".Tag")" == "latest" ]]
-    [[ "$(tail -1 <<< $output | jq -r ".Repository")" == "ubuntu" ]]
-    [[ "$(tail -1 <<< $output | jq -r ".Tag")" == "cosmic" ]]
+    [[ "$status" -eq 0 ]]
+    [[ "$(jq -r ".Repository" <<< "${lines[0]}")" == "ubuntu" ]]
+    [[ "$(jq -r ".Tag" <<< "${lines[0]}")" == "latest" ]]
+    [[ "$(jq -r ".Repository" <<< "${lines[1]}")" == "ubuntu" ]]
+    [[ "$(jq -r ".Tag" <<< "${lines[1]}")" == "cosmic" ]]
 }
 
 @test "images: list images by label" {
@@ -49,10 +49,10 @@ function cleanup {
     id=$(podman inspect dipod-test -f "{{.Id}}")
 
     # Act
-    output=$(docker images --filter="label=$label" --quiet)
-    echo $output
+    run docker images --filter="label=$label" --quiet
 
     # Assert
+    [[ "$status" -eq 0 ]]
     [[ $id =~ ^$output ]]
 }
 
@@ -62,9 +62,10 @@ function cleanup {
     podman pull docker.io/library/ubuntu:latest
 
     # Act
-    output=$(docker images --filter="reference=docker.io/library/ubuntu" --format '{{json .}}' --digests)
+    run docker images --filter="reference=docker.io/library/ubuntu" --format '{{json .}}' --digests
     echo $output
 
     # Assert
+    [[ "$status" -eq 0 ]]
     [[ ! -z "$(jq -r ".Digest" <<< $output)" ]]
 }
