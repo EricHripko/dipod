@@ -52,6 +52,7 @@ before_install:
   - cd $GOPATH/src/github.com/containers/libpod
   - GO111MODULE=auto make BUILDTAGS="selinux seccomp varlink systemd"
   - sudo make install PREFIX=/usr
+  - sudo mkdir -p /etc/containers
   - sudo curl https://raw.githubusercontent.com/containers/skopeo/master/default-policy.json -o /etc/containers/policy.json
   # Install podman runtime dependencies
   - sudo add-apt-repository ppa:projectatomic/ppa -y
