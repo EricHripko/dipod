@@ -184,7 +184,7 @@ func ImageCreate(res http.ResponseWriter, req *http.Request) {
 	// no slash => pulling from DockerHub, docker cli shadily strips docker.io/
 	// prefix even if user explicitly specified it
 	if !strings.ContainsAny(name, "/") {
-		name = "docker.io/" + name
+		name = "docker.io/library/" + name
 	}
 	log.WithField("name", name).Debug("image pull")
 
