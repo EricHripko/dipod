@@ -170,3 +170,56 @@ func ImageBuild(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 }
+
+// ImageCreate is a handler function for /images/create.
+func ImageCreate(res http.ResponseWriter, req *http.Request) {
+	var (
+		fromImage = req.FormValue("fromImage")
+		_         = req.FormValue("fromSrc")
+		_         = req.FormValue("repo")
+		tag       = req.FormValue("tag")
+	)
+
+	name := fromImage + ":" + tag
+	// no slash => pulling from DockerHub, docker cli shadily strips docker.io/
+	// prefix even if user explicitly specified it
+	if !strings.ContainsAny(name, "/") {
+		name = "docker.io/library/" + name
+	}
+	log.WithField("name", name).Debug("image pull")
+
+	recv, err := iopodman.PullImage().Send(podman, varlink.More, name)
+	if err != nil {
+		StreamError(res, err)
+		log.
+			WithField("err", ErrorMessage(err)).
+			Error("image pull fail")
+		return
+	}
+
+	flusher, hasFlusher := res.(http.Flusher)
+	for {
+		status, flags, err := recv()
+		if err != nil {
+			StreamError(res, err)
+			log.
+				WithField("err", ErrorMessage(err)).
+				Error("image pull fail")
+		} else {
+			for _, log := range status.Logs {
+				msg := jsonmessage.JSONMessage{
+					Stream: log,
+					ID:     status.Id,
+				}
+				JSONResponse(res, msg)
+			}
+		}
+
+		if hasFlusher {
+			flusher.Flush()
+		}
+		if flags&varlink.Continues != varlink.Continues {
+			break
+		}
+	}
+}
