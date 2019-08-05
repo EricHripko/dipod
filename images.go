@@ -1,6 +1,8 @@
 package dipod
 
 import (
+	"encoding/json"
+	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -10,9 +12,11 @@ import (
 	"time"
 
 	"github.com/EricHripko/dipod/iopodman"
-	"github.com/docker/docker/pkg/jsonmessage"
 
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/pkg/jsonmessage"
+	"github.com/gorilla/mux"
 	"github.com/moby/moby/api/types"
 	log "github.com/sirupsen/logrus"
 	"github.com/varlink/go/varlink"
@@ -222,4 +226,108 @@ func ImageCreate(res http.ResponseWriter, req *http.Request) {
 			break
 		}
 	}
+}
+
+var errImageName = errors.New("dipod: missing image name")
+var errImageData = errors.New("dipod: cannot decode image data")
+
+func is2ss(i []interface{}) (s []string) {
+	for _, ii := range i {
+		s = append(s, ii.(string))
+	}
+	return
+}
+
+// ImageInspect is a handler function for /images/{name}/json.
+func ImageInspect(res http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	name, ok := vars["name"]
+	if !ok {
+		log.WithError(errImageName).Error("image inspect fail")
+		res.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	log := log.WithField("name", name)
+	log.Debug("image inspect")
+
+	// podman for some reason returns this as JSON string, need to decode
+	payload, err := iopodman.InspectImage().Call(podman, name)
+	if err != nil {
+		WriteError(res, err)
+		return
+	}
+	data := make(map[string]interface{})
+	json.Unmarshal([]byte(payload), &data)
+
+	digest := strings.TrimPrefix(data["Digest"].(string), "sha256:")
+	image := types.ImageInspect{
+		ID:           data["Id"].(string),
+		Container:    digest,
+		Comment:      data["Comment"].(string),
+		Os:           data["Os"].(string),
+		Architecture: data["Architecture"].(string),
+		Parent:       data["Parent"].(string),
+		Config: &container.Config{
+			Hostname:        "",
+			Domainname:      "",
+			AttachStdout:    false,
+			AttachStdin:     false,
+			AttachStderr:    false,
+			OpenStdin:       false,
+			StdinOnce:       false,
+			ArgsEscaped:     true,
+			NetworkDisabled: false,
+			OnBuild:         nil, //todo
+			Image:           digest,
+			User:            "",
+			WorkingDir:      "",
+			MacAddress:      "",
+			Entrypoint:      nil,
+			Labels:          nil, //todo
+		},
+		DockerVersion: data["Version"].(string),
+		VirtualSize:   int64(data["VirtualSize"].(float64)),
+		Size:          int64(data["Size"].(float64)),
+		Author:        data["Author"].(string),
+		Created:       data["Created"].(string),
+		RepoDigests:   is2ss(data["RepoDigests"].([]interface{})),
+		RepoTags:      is2ss(data["RepoTags"].([]interface{})),
+	}
+
+	// container config
+	config := data["Config"].(map[string]interface{})
+	if env, ok := config["Env"]; ok {
+		image.Config.Env = is2ss(env.([]interface{}))
+	}
+	if cmd, ok := config["Cmd"]; ok {
+		image.Config.Cmd = is2ss(cmd.([]interface{}))
+	}
+	if ep, ok := config["Entrypoint"]; ok {
+		image.Config.Entrypoint = is2ss(ep.([]interface{}))
+	}
+	if workdir, ok := config["WorkingDir"]; ok {
+		image.Config.WorkingDir = workdir.(string)
+	}
+
+	image.ContainerConfig = image.Config
+
+	// graph driver
+	gd := data["GraphDriver"].(map[string]interface{})
+	gdd := gd["Data"].(map[string]interface{})
+	image.GraphDriver = types.GraphDriverData{
+		Name: gd["Name"].(string),
+		Data: make(map[string]string),
+	}
+	for key, val := range gdd {
+		image.GraphDriver.Data[key] = val.(string)
+	}
+
+	// rootfs
+	rootfs := data["RootFS"].(map[string]interface{})
+	image.RootFS = types.RootFS{
+		Type:   rootfs["Type"].(string),
+		Layers: is2ss(rootfs["Layers"].([]interface{})),
+	}
+
+	JSONResponse(res, image)
 }
