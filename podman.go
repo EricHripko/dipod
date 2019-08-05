@@ -24,7 +24,6 @@ func Connect() {
 func ErrorMessage(err error) string {
 	if podErr, ok := err.(*iopodman.ErrorOccurred); ok {
 		return podErr.Reason
-	} else {
-		return err.Error()
 	}
+	return err.Error()
 }

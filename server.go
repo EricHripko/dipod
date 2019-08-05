@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/coreos/go-systemd/activation"
+	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -30,21 +31,23 @@ func Serve() {
 	defer listener.Close()
 	log.WithField("address", listener.Addr()).Info("unix listen")
 
+	r := mux.NewRouter()
 	// unhandled request
-	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
+	r.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
 		log.WithField("uri", req.RequestURI).Warn("not implemented")
 		res.WriteHeader(http.StatusNotImplemented)
 	})
 	// system
-	http.HandleFunc("/_ping", Ping)
-	http.HandleFunc("/v1.26/version", Version)
-	http.HandleFunc("/v1.26/info", SystemInfo)
+	r.HandleFunc("/_ping", Ping)
+	r.HandleFunc("/v1.26/version", Version)
+	r.HandleFunc("/v1.26/info", SystemInfo)
 	// images
-	http.HandleFunc("/v1.26/images/json", ImageList)
-	http.HandleFunc("/v1.26/build", ImageBuild)
-	http.HandleFunc("/v1.26/images/create", ImageCreate)
+	r.HandleFunc("/v1.26/images/json", ImageList)
+	r.HandleFunc("/v1.26/build", ImageBuild)
+	r.HandleFunc("/v1.26/images/create", ImageCreate)
+	r.HandleFunc("/v1.26/images/{name}/json", ImageInspect)
 
-	err = http.Serve(listener, nil)
+	err = http.Serve(listener, r)
 	if err != nil {
 		log.WithError(err).Fatal("http server fail")
 	}
