@@ -2,7 +2,7 @@
 
 @test "system: version" {
     # Arrange/Act
-    output=$(docker version --format '{{json .Server}}')
+    run docker version --format '{{json .Server}}'
     echo $output
 
     # Assert
@@ -23,7 +23,7 @@
 
 @test "system: info" {
     # Arrange/Act
-    output=$(docker system info --format '{{json .}}')
+    run docker system info --format '{{json .}}'
     echo $output
 
     # Assert
