@@ -175,7 +175,7 @@ function cleanup {
 
 @test "images: inspect advanced" {
     # Arrange
-    podman pull docker.io/library/ubuntu
+    podman pull docker.io/library/node:carbon-onbuild
 
     # Act
     run docker inspect node:carbon-onbuild
