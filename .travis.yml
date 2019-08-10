@@ -29,7 +29,6 @@ before_install:
     bats
     btrfs-tools
     git
-    golang-go
     go-md2man
     iptables
     jq
