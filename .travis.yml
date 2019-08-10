@@ -29,7 +29,6 @@ before_install:
     bats
     btrfs-tools
     git
-    golang-go
     go-md2man
     iptables
     jq
@@ -50,8 +49,8 @@ before_install:
     uidmap -y
   - git clone https://github.com/containers/libpod/ $GOPATH/src/github.com/containers/libpod
   - cd $GOPATH/src/github.com/containers/libpod
-  - GO111MODULE=auto make BUILDTAGS="selinux seccomp varlink systemd"
-  - sudo make install PREFIX=/usr
+  - make BUILDTAGS="selinux seccomp varlink systemd"
+  - sudo "PATH=$PATH" make install PREFIX=/usr
   - sudo mkdir -p /etc/containers
   - sudo curl https://raw.githubusercontent.com/containers/skopeo/master/default-policy.json -o /etc/containers/policy.json
   # Install podman runtime dependencies

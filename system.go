@@ -46,7 +46,7 @@ func SystemInfo(res http.ResponseWriter, req *http.Request) {
 	log.Debug("system info")
 	backend, err := iopodman.GetInfo().Call(podman)
 	if err != nil {
-		WriteError(res, err)
+		WriteError(res, http.StatusInternalServerError, err)
 		return
 	}
 
