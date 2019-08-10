@@ -47,6 +47,7 @@ func Serve() {
 	r.HandleFunc("/v1.26/images/create", ImageCreate)
 	r.HandleFunc("/v1.26/images/{name}/json", ImageInspect)
 	r.HandleFunc("/v1.26/images/{name}/history", ImageHistory)
+	r.HandleFunc("/v1.26/images/{name}/tag", ImageTag)
 
 	err = http.Serve(listener, r)
 	if err != nil {

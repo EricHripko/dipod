@@ -4,6 +4,8 @@ function cleanup {
     podman rmi -f docker.io/library/ubuntu:latest || true
     podman rmi -f docker.io/library/ubuntu:cosmic || true
     podman rmi -f dipod-test || true
+    podman rmi -f dipod-tag-test || true
+    podman rmi -f dipod-tag-test:test || true
 }
 
 @test "images: list by name and tag" {
@@ -293,4 +295,45 @@ function cleanup {
 
     # Assert
     [[ "$status" -eq 1 ]]
+}
+
+@test "images: image tag name only" {
+    # Arrange
+    cleanup
+    target=dipod-tag-test
+    podman pull docker.io/library/ubuntu
+
+    # Act
+    run docker tag ubuntu $target
+    echo $output
+
+    # Assert
+    [[ "$status" -eq 0 ]]
+}
+
+@test "images: image tag name with tag" {
+    # Arrange
+    cleanup
+    target=dipod-tag-test:test
+    podman pull docker.io/library/ubuntu
+
+    # Act
+    run docker tag ubuntu $target
+    echo $output
+
+    # Assert
+    [[ "$status" -eq 0 ]]
+}
+
+@test "images: image tag source not found" {
+    # Arrange
+    cleanup
+    target=dipod-tag-test
+
+    # Act
+    run docker tag does_not_exist:probably $target
+    echo $output
+
+    # Assert
+    [[ "$status" -ne 0 ]]
 }
