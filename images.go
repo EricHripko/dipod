@@ -362,3 +362,47 @@ func ImageInspect(res http.ResponseWriter, req *http.Request) {
 
 	JSONResponse(res, image)
 }
+
+// ImageHistory is a handler function for /images/{name}/history.
+func ImageHistory(res http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	name, ok := vars["name"]
+	if !ok {
+		log.WithError(errImageName).Error("image history fail")
+		res.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	log := log.WithField("name", name)
+	log.Debug("image history")
+
+	var history []types.ImageHistory
+	backend, err := iopodman.HistoryImage().Call(podman, name)
+	if notFound, ok := err.(*iopodman.ImageNotFound); ok {
+		WriteError(res, http.StatusNotFound, errors.New(notFound.Reason))
+		return
+	}
+	if err != nil {
+		WriteError(res, http.StatusInternalServerError, err)
+		return
+	}
+
+	for _, l := range backend {
+		layer := types.ImageHistory{
+			ID:        l.Id,
+			CreatedBy: l.CreatedBy,
+			Tags:      l.Tags,
+			Size:      l.Size,
+			Comment:   l.Comment,
+		}
+		if created, err := time.Parse(time.RFC3339, l.Created); err == nil {
+			layer.Created = created.Unix()
+		} else {
+			log.
+				WithError(err).
+				WithField("created", l.Created).Warn("created parse fail")
+		}
+
+		history = append(history, layer)
+	}
+	JSONResponse(res, history)
+}
