@@ -361,3 +361,45 @@ function cleanup {
     # Assert
     [[ "$status" -ne 0 ]]
 }
+
+@test "images: image search" {
+    # Arrange
+    image=docker.io/ubuntu
+
+    # Act
+    run docker search $image --format="{{json .}}"
+    echo $output
+
+    # Assert
+    [[ "$status" -eq 0 ]]
+    [[ "$(jq -r ".Name" <<< "${lines[0]}")" == "docker.io/library/ubuntu" ]]
+}
+
+@test "images: image search by stars" {
+    # Arrange
+    image=docker.io/ubuntu
+    stars=5000
+
+    # Act
+    run docker search $image --filter=stars=$stars --format="{{json .}}"
+    echo $output
+
+    # Assert
+    [[ "$status" -eq 0 ]]
+    [[ "$(jq -r ".Name" <<< "${lines[0]}")" == "docker.io/library/ubuntu" ]]
+    [[ "$(jq -r ".StarCount" <<< "${lines[0]}")" -gt $stars ]]
+}
+
+@test "images: image search by official status" {
+    # Arrange
+    image=docker.io/ubuntu
+
+    # Act
+    run docker search $image --filter=is-official=true --format="{{json .}}"
+    echo $output
+
+    # Assert
+    [[ "$status" -eq 0 ]]
+    [[ "$(jq -r ".Name" <<< "${lines[0]}")" == "docker.io/library/ubuntu" ]]
+    [[ "$(jq -r ".IsOfficial" <<< "${lines[0]}")" == "true" ]]
+}

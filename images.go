@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/go-connections/nat"
 	"github.com/gorilla/mux"
@@ -451,6 +453,8 @@ func ImageDelete(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	force := req.FormValue("force")
+	log := log.WithField("name", name).WithField("force", force)
+	log.Debug("image delete")
 
 	deleted, err := iopodman.RemoveImage().Call(
 		podman,
@@ -467,4 +471,86 @@ func ImageDelete(res http.ResponseWriter, req *http.Request) {
 	}
 
 	JSONResponse(res, []types.ImageDelete{types.ImageDelete{Deleted: deleted}})
+}
+
+// ImageSearch is a handler function for /images/search.
+func ImageSearch(res http.ResponseWriter, req *http.Request) {
+	query := req.FormValue("term")
+	if query == "" {
+		err := errors.New("dipod: missing term")
+		log.WithError(err).Error("image tag fail")
+		WriteError(res, http.StatusBadRequest, err)
+		return
+	}
+	var limit *int64
+	sLimit := req.FormValue("limit")
+	if sLimit != "" {
+		nLimit, err := strconv.Atoi(sLimit)
+		var lLimit int64
+		if err != nil {
+			log.
+				WithError(err).
+				WithField("limit", sLimit).
+				Warn("image search ignore invalid limit")
+		} else {
+			lLimit = int64(nLimit)
+			limit = &lLimit
+		}
+	}
+	filters, err := filters.FromParam(req.FormValue("filters"))
+	if err != nil {
+		log.WithError(err).Warn("image search filter fail")
+	}
+	log.
+		WithFields(log.Fields{
+			"query":   query,
+			"limit":   sLimit,
+			"filters": filters,
+		}).
+		Debug("image search")
+
+	yes := true
+	no := false
+	filter := iopodman.ImageSearchFilter{}
+	isAutomated := filters.Get("is-automated")
+	if len(isAutomated) > 0 && (isAutomated[0] == "true" || isAutomated[0] == "1") {
+		filter.Is_automated = &yes
+	}
+	if len(isAutomated) > 0 && (isAutomated[0] == "false" || isAutomated[0] == "0") {
+		filter.Is_automated = &no
+	}
+	isOfficial := filters.Get("is-official")
+	if len(isOfficial) > 0 && (isOfficial[0] == "true" || isOfficial[0] == "1") {
+		filter.Is_official = &yes
+	}
+	if len(isOfficial) > 0 && (isOfficial[0] == "false" || isOfficial[0] == "0") {
+		filter.Is_official = &no
+	}
+	stars := filters.Get("stars")
+	if len(stars) > 0 {
+		nStars, err := strconv.Atoi(stars[0])
+		if err != nil {
+			log.WithError(err).Warn("image search star filter fail")
+		} else {
+			filter.Star_count = int64(nStars)
+		}
+	}
+
+	srcs, err := iopodman.SearchImages().Call(podman, query, limit, filter)
+	if err != nil {
+		WriteError(res, http.StatusInternalServerError, err)
+		return
+	}
+
+	var images []registry.SearchResult
+	for _, src := range srcs {
+		images = append(images, registry.SearchResult{
+			Name:        src.Name,
+			Description: src.Description,
+			IsAutomated: src.Is_automated,
+			IsOfficial:  src.Is_official,
+			StarCount:   int(src.Star_count),
+		})
+	}
+	JSONResponse(res, images)
 }
