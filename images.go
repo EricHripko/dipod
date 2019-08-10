@@ -27,7 +27,7 @@ import (
 func ImageList(res http.ResponseWriter, req *http.Request) {
 	all := req.FormValue("all")
 	if all == "1" || all == "true" {
-		WriteError(res, ErrNotImplemented)
+		WriteError(res, http.StatusNotImplemented, ErrNotImplemented)
 		return
 	}
 	filters, err := filters.FromParam(req.FormValue("filters"))
@@ -253,8 +253,12 @@ func ImageInspect(res http.ResponseWriter, req *http.Request) {
 
 	// podman for some reason returns this as JSON string, need to decode
 	payload, err := iopodman.InspectImage().Call(podman, name)
+	if notFound, ok := err.(*iopodman.ImageNotFound); ok {
+		WriteError(res, http.StatusNotFound, errors.New(notFound.Reason))
+		return
+	}
 	if err != nil {
-		WriteError(res, err)
+		WriteError(res, http.StatusInternalServerError, err)
 		return
 	}
 	data := make(map[string]interface{})

@@ -261,3 +261,13 @@ function cleanup {
     [[ "$(jq -cr ".[0].ContainerConfig.Labels" <<< $output)" == '{"dipod.is.awesome":"yes"}' ]]
     [[ "$(jq -cr ".[0].ContainerConfig.ExposedPorts" <<< $output)" == '{"80/tcp":{}}' ]]
 }
+
+@test "images: inspect not found" {
+    # Arrange/Act
+    run docker inspect does_not_exist:probably
+    echo $output
+
+    # Assert
+    [[ "$status" -eq 1 ]]
+    [[ "$output" =~ "Error: No such object: does_not_exist:probably" ]]
+}

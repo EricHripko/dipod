@@ -14,8 +14,8 @@ import (
 var ErrNotImplemented = errors.New("dipod: not implemented")
 
 // WriteError returns an error response to the client.
-func WriteError(res http.ResponseWriter, err error) {
-	res.WriteHeader(http.StatusInternalServerError)
+func WriteError(res http.ResponseWriter, statusCode int, err error) {
+	res.WriteHeader(statusCode)
 	err = json.NewEncoder(res).Encode(
 		types.ErrorResponse{Message: ErrorMessage(err)},
 	)
