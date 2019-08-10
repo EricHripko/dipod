@@ -16,6 +16,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/pkg/jsonmessage"
+	"github.com/docker/go-connections/nat"
 	"github.com/gorilla/mux"
 	"github.com/moby/moby/api/types"
 	log "github.com/sirupsen/logrus"
@@ -308,7 +309,33 @@ func ImageInspect(res http.ResponseWriter, req *http.Request) {
 	if workdir, ok := config["WorkingDir"]; ok {
 		image.Config.WorkingDir = workdir.(string)
 	}
-
+	if user, ok := config["User"]; ok {
+		image.Config.User = user.(string)
+	}
+	if stopSignal, ok := config["StopSignal"]; ok {
+		image.Config.StopSignal = stopSignal.(string)
+	}
+	if tmp, ok := config["ExposedPorts"]; ok {
+		image.Config.ExposedPorts = make(nat.PortSet)
+		ports := tmp.(map[string]interface{})
+		for port := range ports {
+			image.Config.ExposedPorts[nat.Port(port)] = struct{}{}
+		}
+	}
+	if tmp, ok := config["Volumes"]; ok {
+		image.Config.Volumes = make(map[string]struct{})
+		vols := tmp.(map[string]interface{})
+		for vol := range vols {
+			image.Config.Volumes[vol] = struct{}{}
+		}
+	}
+	if tmp, ok := config["Labels"]; ok {
+		image.Config.Labels = make(map[string]string)
+		labels := tmp.(map[string]interface{})
+		for key, val := range labels {
+			image.Config.Labels[key] = val.(string)
+		}
+	}
 	image.ContainerConfig = image.Config
 
 	// graph driver

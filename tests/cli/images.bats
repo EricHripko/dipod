@@ -111,7 +111,7 @@ function cleanup {
 
 @test "images: inspect basic" {
     # Arrange
-    docker pull ubuntu
+    podman pull docker.io/library/ubuntu
 
     # Act
     run docker inspect ubuntu
@@ -175,7 +175,7 @@ function cleanup {
 
 @test "images: inspect advanced" {
     # Arrange
-    docker pull node:carbon-onbuild
+    podman pull docker.io/library/ubuntu
 
     # Act
     run docker inspect node:carbon-onbuild
@@ -239,4 +239,25 @@ function cleanup {
     [[ "$(jq -r ".[0].VirtualSize" <<< $output)" != "0" ]]
     [[ "$(jq -r ".[0].GraphDriver.Name" <<< $output)" == "overlay" ]]
     [[ "$(jq -r ".[0].RootFS.Type" <<< $output)" == "layers" ]]
+}
+
+@test "images: inspect metadata" {
+    # Arrange
+    tag=dipod-inspect
+    podman build --tag $tag $BATS_TEST_DIRNAME/images-inspect
+
+    # Act
+    run docker inspect dipod-inspect
+    echo $output
+
+    # Assert
+    [[ "$status" -eq 0 ]]
+    [[ "$(jq -r ".[0].RepoTags[0]" <<< $output)" == "localhost/dipod-inspect:latest" ]]
+    [[ "$(jq -r ".[0].RepoDigests[0]" <<< $output)" =~ "localhost/dipod-inspect@sha256:" ]]
+
+    [[ "$(jq -r ".[0].ContainerConfig.User" <<< $output)" == "dipod" ]]
+    [[ "$(jq -r ".[0].ContainerConfig.StopSignal" <<< $output)" == "SIGKILL" ]]
+    [[ "$(jq -cr ".[0].ContainerConfig.Volumes" <<< $output)" == '{"/data":{}}' ]]
+    [[ "$(jq -cr ".[0].ContainerConfig.Labels" <<< $output)" == '{"dipod.is.awesome":"yes"}' ]]
+    [[ "$(jq -cr ".[0].ContainerConfig.ExposedPorts" <<< $output)" == '{"80/tcp":{}}' ]]
 }
