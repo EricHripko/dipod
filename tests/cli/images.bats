@@ -271,3 +271,26 @@ function cleanup {
     [[ "$status" -eq 1 ]]
     [[ "$output" =~ "Error: No such object: does_not_exist:probably" ]]
 }
+
+
+@test "images: image history" {
+    # Arrange
+    podman pull docker.io/library/ubuntu
+
+    # Act
+    run docker history ubuntu --format "{{json .}}"
+    echo $output
+
+    # Assert
+    [[ "$status" -eq 0 ]]
+    [[ "${#lines[@]}" -gt 0 ]]
+}
+
+@test "images: image history fail" {
+    # Arrange/Act
+    run docker history does_not_exist:probably
+    echo $output
+
+    # Assert
+    [[ "$status" -eq 1 ]]
+}

@@ -377,8 +377,12 @@ func ImageHistory(res http.ResponseWriter, req *http.Request) {
 
 	var history []types.ImageHistory
 	backend, err := iopodman.HistoryImage().Call(podman, name)
+	if notFound, ok := err.(*iopodman.ImageNotFound); ok {
+		WriteError(res, http.StatusNotFound, errors.New(notFound.Reason))
+		return
+	}
 	if err != nil {
-		WriteError(res, err)
+		WriteError(res, http.StatusInternalServerError, err)
 		return
 	}
 
