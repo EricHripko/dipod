@@ -48,7 +48,7 @@ function cleanup {
         --label $label \
         --tag dipod-test \
         $BATS_TEST_DIRNAME/images-list-labels
-    id=$(podman inspect dipod-test -f "{{.Id}}")
+    id=$(podman inspect dipod-test --format "{{.Id}}")
 
     # Act
     run docker images --filter="label=$label" --quiet
@@ -332,6 +332,30 @@ function cleanup {
 
     # Act
     run docker tag does_not_exist:probably $target
+    echo $output
+
+    # Assert
+    [[ "$status" -ne 0 ]]
+}
+
+@test "images: image remove" {
+    # Arrange
+    cleanup
+    image=docker.io/library/ubuntu
+    podman pull $image
+    podman tag $image dipod-test
+
+    # Act
+    run docker rmi dipod-test
+    echo $output
+
+    # Assert
+    [[ "$status" -eq 0 ]]
+}
+
+@test "images: image remove source not found" {
+    # Arrange/Act
+    run docker rmi does_not_exist:probably $target
     echo $output
 
     # Assert

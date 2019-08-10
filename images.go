@@ -440,3 +440,31 @@ func ImageTag(res http.ResponseWriter, req *http.Request) {
 	}
 	res.WriteHeader(http.StatusNoContent)
 }
+
+// ImageDelete is a handler function for /images/{name}.
+func ImageDelete(res http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	name, ok := vars["name"]
+	if !ok {
+		log.WithError(errImageName).Error("image tag fail")
+		WriteError(res, http.StatusBadRequest, errImageName)
+		return
+	}
+	force := req.FormValue("force")
+
+	deleted, err := iopodman.RemoveImage().Call(
+		podman,
+		name,
+		force == "true" || force == "1",
+	)
+	if notFound, ok := err.(*iopodman.ImageNotFound); ok {
+		WriteError(res, http.StatusNotFound, errors.New(notFound.Reason))
+		return
+	}
+	if err != nil {
+		WriteError(res, http.StatusInternalServerError, err)
+		return
+	}
+
+	JSONResponse(res, []types.ImageDelete{types.ImageDelete{Deleted: deleted}})
+}
