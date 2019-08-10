@@ -50,7 +50,7 @@ before_install:
   - git clone https://github.com/containers/libpod/ $GOPATH/src/github.com/containers/libpod
   - cd $GOPATH/src/github.com/containers/libpod
   - make BUILDTAGS="selinux seccomp varlink systemd"
-  - sudo --preserve-env make install PREFIX=/usr
+  - sudo "PATH=$PATH" make install PREFIX=/usr
   - sudo mkdir -p /etc/containers
   - sudo curl https://raw.githubusercontent.com/containers/skopeo/master/default-policy.json -o /etc/containers/policy.json
   # Install podman runtime dependencies
