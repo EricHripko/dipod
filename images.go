@@ -245,7 +245,7 @@ func ImageInspect(res http.ResponseWriter, req *http.Request) {
 	name, ok := vars["name"]
 	if !ok {
 		log.WithError(errImageName).Error("image inspect fail")
-		res.WriteHeader(http.StatusBadRequest)
+		WriteError(res, http.StatusBadRequest, errImageName)
 		return
 	}
 	log := log.WithField("name", name)
@@ -369,7 +369,7 @@ func ImageHistory(res http.ResponseWriter, req *http.Request) {
 	name, ok := vars["name"]
 	if !ok {
 		log.WithError(errImageName).Error("image history fail")
-		res.WriteHeader(http.StatusBadRequest)
+		WriteError(res, http.StatusBadRequest, errImageName)
 		return
 	}
 	log := log.WithField("name", name)
@@ -405,4 +405,38 @@ func ImageHistory(res http.ResponseWriter, req *http.Request) {
 		history = append(history, layer)
 	}
 	JSONResponse(res, history)
+}
+
+// ImageTag is a handler function for /images/{name}/tag.
+func ImageTag(res http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	source, ok := vars["name"]
+	if !ok {
+		log.WithError(errImageName).Error("image tag fail")
+		WriteError(res, http.StatusBadRequest, errImageName)
+		return
+	}
+	target := req.FormValue("repo")
+	tag := req.FormValue("tag")
+	if tag != "" {
+		target += ":" + tag
+	}
+	log := log.WithField("source", source).WithField("target", target)
+	if target == "" {
+		err := errors.New("dipod: empty target")
+		log.WithError(err).Error("image tag fail")
+		WriteError(res, http.StatusBadRequest, errImageName)
+	}
+	log.Debug("image tag")
+
+	_, err := iopodman.TagImage().Call(podman, source, target)
+	if notFound, ok := err.(*iopodman.ImageNotFound); ok {
+		WriteError(res, http.StatusNotFound, errors.New(notFound.Reason))
+		return
+	}
+	if err != nil {
+		WriteError(res, http.StatusInternalServerError, err)
+		return
+	}
+	res.WriteHeader(http.StatusNoContent)
 }
