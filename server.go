@@ -50,6 +50,8 @@ func Serve() {
 	r.HandleFunc("/v1.26/images/{name}/tag", ImageTag)
 	r.HandleFunc("/v1.26/images/{name}", ImageDelete).Methods("DELETE")
 	r.HandleFunc("/v1.26/images/search", ImageSearch)
+	r.HandleFunc("/v1.26/images/{name}/get", ImageGet)
+	r.HandleFunc("/v1.26/images/get", ImageGetAll)
 
 	err = http.Serve(listener, r)
 	if err != nil {
