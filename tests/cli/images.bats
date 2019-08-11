@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 function cleanup {
-    podman system prune --force || true
+    podman system prune --force --all || true
 }
 
 @test "images: list by name and tag" {
