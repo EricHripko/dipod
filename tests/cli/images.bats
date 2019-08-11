@@ -1,11 +1,7 @@
 #!/usr/bin/env bats
 
 function cleanup {
-    podman rmi -f docker.io/library/ubuntu:latest || true
-    podman rmi -f docker.io/library/ubuntu:cosmic || true
-    podman rmi -f dipod-test || true
-    podman rmi -f dipod-tag-test || true
-    podman rmi -f dipod-tag-test:test || true
+    podman system prune --force --all || true
 }
 
 @test "images: list by name and tag" {
@@ -42,8 +38,8 @@ function cleanup {
 
 @test "images: list by label" {
     # Arrange
+    cleanup
     label="dipod.is.awesome=yes"
-    podman rmi dipod-test || true
     podman build \
         --label $label \
         --tag dipod-test \
@@ -245,6 +241,7 @@ function cleanup {
 
 @test "images: inspect metadata" {
     # Arrange
+    cleanup
     tag=dipod-inspect
     podman build --tag $tag $BATS_TEST_DIRNAME/images-inspect
 
@@ -402,4 +399,61 @@ function cleanup {
     [[ "$status" -eq 0 ]]
     [[ "$(jq -r ".Name" <<< "${lines[0]}")" == "docker.io/library/ubuntu" ]]
     [[ "$(jq -r ".IsOfficial" <<< "${lines[0]}")" == "true" ]]
+}
+
+@test "images: image search by official status" {
+    # Arrange
+    image=docker.io/ubuntu
+
+    # Act
+    run docker search $image --filter=is-official=true --format="{{json .}}"
+    echo $output
+
+    # Assert
+    [[ "$status" -eq 0 ]]
+    [[ "$(jq -r ".Name" <<< "${lines[0]}")" == "docker.io/library/ubuntu" ]]
+    [[ "$(jq -r ".IsOfficial" <<< "${lines[0]}")" == "true" ]]
+}
+
+@test "images: image save single" {
+    # Arrange
+    image=docker.io/ubuntu
+    podman pull $image
+
+    # Act
+    run docker save $image --output ubuntu.tar
+    echo $output
+
+    # Assert
+    [[ "$status" -eq 0 ]]
+}
+
+@test "images: image save multiple tags" {
+    # Arrange
+    image=docker.io/ubuntu
+    image=docker.io/ubuntu
+    podman pull $image:latest
+    podman pull $image:xenial
+
+    # Act
+    run docker save $image:latest $image:xenial --output ubuntu.tar
+    echo $output
+
+    # Assert
+    [[ "$status" -eq 0 ]]
+}
+
+@test "images: image save multiple images" {
+    # Arrange
+    image1=docker.io/ubuntu
+    image2=docker.io/node
+    podman pull $image1
+    podman pull $image2
+
+    # Act
+    run docker save $image1 $image2 --output multiple.tar
+    echo $output
+
+    # Assert
+    [[ "$status" -ne 0 ]]
 }

@@ -14,6 +14,7 @@ import (
 
 	"github.com/EricHripko/dipod/iopodman"
 
+	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/registry"
@@ -553,4 +554,116 @@ func ImageSearch(res http.ResponseWriter, req *http.Request) {
 		})
 	}
 	JSONResponse(res, images)
+}
+
+func exportImages(res http.ResponseWriter, names []string, log *log.Entry) {
+	// prepare temp file for the tarball
+	tmp, err := ioutil.TempFile("", "dipod-export")
+	if err != nil {
+		log.WithError(err).Error("image export fail")
+		WriteError(res, http.StatusInternalServerError, err)
+		return
+	}
+	dest := "docker-archive://" + tmp.Name()
+	err = tmp.Close()
+	if err != nil {
+		log.WithError(err).Error("image export fail")
+		WriteError(res, http.StatusInternalServerError, err)
+		return
+	}
+	defer os.Remove(tmp.Name())
+
+	// parse list of image names into name + list of tags
+	ref, err := reference.Parse(names[0])
+	if err != nil {
+		log.WithError(err).Error("image export fail")
+		WriteError(res, http.StatusBadRequest, err)
+		return
+	}
+	named, ok := ref.(reference.Named)
+	if !ok {
+		err := errors.New("dipod: main name parse fail")
+		log.WithError(err).Error("image export fail")
+		WriteError(res, http.StatusBadRequest, err)
+		return
+	}
+	var tags []string
+	for _, name := range names[1:] {
+		ref, err := reference.Parse(name)
+		if err != nil {
+			log.WithError(err).Error("image export fail")
+			WriteError(res, http.StatusBadRequest, err)
+			return
+		}
+		nt, ok := ref.(reference.NamedTagged)
+		if !ok {
+			err := errors.New("dipod: secondary name parse fail")
+			log.WithError(err).Error("image export fail")
+			WriteError(res, http.StatusBadRequest, err)
+			return
+		}
+		if named.Name() != nt.Name() {
+			err := errors.New("dipod: multiple image export not supported")
+			log.WithError(err).Error("image export fail")
+			WriteError(res, http.StatusNotImplemented, err)
+			return
+		}
+		tags = append(tags, nt.Tag())
+	}
+
+	_, err = iopodman.ExportImage().Call(podman, names[0], dest, false, tags)
+	if notFound, ok := err.(*iopodman.ImageNotFound); ok {
+		WriteError(res, http.StatusNotFound, errors.New(notFound.Reason))
+		return
+	}
+	if err != nil {
+		log.WithError(err).Error("image export fail")
+		WriteError(res, http.StatusInternalServerError, err)
+		return
+	}
+
+	tmp, err = os.Open(tmp.Name())
+	if err != nil {
+		log.WithError(err).Error("image export fail")
+		WriteError(res, http.StatusInternalServerError, err)
+		return
+	}
+
+	res.Header().Set("Content-Type", "application/x-tar")
+	io.Copy(res, tmp)
+}
+
+// ImageGet is a handler function for /images/{name}/get.
+func ImageGet(res http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	name, ok := vars["name"]
+	if !ok {
+		log.WithError(errImageName).Error("image export fail")
+		WriteError(res, http.StatusBadRequest, errImageName)
+		return
+	}
+	log := log.WithField("name", name)
+	log.Debug("image export")
+
+	exportImages(res, []string{name}, log)
+}
+
+// ImageGetAll is a handler function for /images/get.
+func ImageGetAll(res http.ResponseWriter, req *http.Request) {
+	err := req.ParseForm()
+	if err != nil {
+		log.WithError(err).Error("image export fail")
+		WriteError(res, http.StatusInternalServerError, err)
+		return
+	}
+	names := req.Form["names"]
+	if len(names) == 0 {
+		log.WithError(err).Error("image export fail")
+		WriteError(res, http.StatusInternalServerError, err)
+		return
+	}
+	log := log.WithField("names", names)
+	log.Debug("image bulk export")
+
+	exportImages(res, names, log)
 }
