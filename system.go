@@ -1,13 +1,14 @@
 package dipod
 
 import (
+	"context"
 	"net"
 	"net/http"
 	"runtime"
 	"time"
 
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/registry"
-	"github.com/moby/moby/api/types"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/EricHripko/dipod/iopodman"
@@ -44,7 +45,7 @@ func Version(res http.ResponseWriter, req *http.Request) {
 // SystemInfo is a handler function for /info.
 func SystemInfo(res http.ResponseWriter, req *http.Request) {
 	log.Debug("system info")
-	backend, err := iopodman.GetInfo().Call(podman)
+	backend, err := iopodman.GetInfo().Call(context.TODO(), podman)
 	if err != nil {
 		WriteError(res, http.StatusInternalServerError, err)
 		return

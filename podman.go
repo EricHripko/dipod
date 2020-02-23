@@ -1,6 +1,8 @@
 package dipod
 
 import (
+	"context"
+
 	"github.com/EricHripko/dipod/iopodman"
 	log "github.com/sirupsen/logrus"
 	"github.com/varlink/go/varlink"
@@ -11,7 +13,7 @@ var podman *varlink.Connection
 // Connect to the Podman's varlink interface.
 func Connect() {
 	var err error
-	podman, err = varlink.NewConnection(PodmanUnixAddress)
+	podman, err = varlink.NewConnection(context.TODO(), PodmanUnixAddress)
 	log := log.WithField("address", PodmanUnixAddress)
 	if err != nil {
 		log.WithError(err).Fatal("podman connect fail")

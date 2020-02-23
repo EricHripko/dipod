@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/docker/docker/pkg/jsonmessage"
-	"github.com/moby/moby/api/types"
+	"github.com/docker/docker/api/types"
 )
 
 // ErrNotImplemented is returned when functionality requested was not

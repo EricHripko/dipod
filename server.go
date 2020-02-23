@@ -42,14 +42,14 @@ func Serve() {
 	r.HandleFunc("/v1.26/version", Version)
 	r.HandleFunc("/v1.26/info", SystemInfo)
 	// images
-	r.HandleFunc("/v1.26/images/json", ImageList)
+	//r.HandleFunc("/v1.26/images/json", ImageList)
 	r.HandleFunc("/v1.26/build", ImageBuild)
 	r.HandleFunc("/v1.26/images/create", ImageCreate)
 	r.HandleFunc("/v1.26/images/{name}/json", ImageInspect)
 	r.HandleFunc("/v1.26/images/{name}/history", ImageHistory)
 	r.HandleFunc("/v1.26/images/{name}/tag", ImageTag)
 	r.HandleFunc("/v1.26/images/{name}", ImageDelete).Methods("DELETE")
-	r.HandleFunc("/v1.26/images/search", ImageSearch)
+	//r.HandleFunc("/v1.26/images/search", ImageSearch)
 	r.HandleFunc("/v1.26/images/{name}/get", ImageGet)
 	r.HandleFunc("/v1.26/images/get", ImageGetAll)
 

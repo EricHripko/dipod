@@ -1,6 +1,7 @@
 package dipod
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -8,25 +9,24 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/EricHripko/dipod/iopodman"
 
 	"github.com/docker/distribution/reference"
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/api/types/registry"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/go-connections/nat"
 	"github.com/gorilla/mux"
-	"github.com/moby/moby/api/types"
 	log "github.com/sirupsen/logrus"
 	"github.com/varlink/go/varlink"
 )
 
 // ImageList is a handler function for /images/json.
+/*
 func ImageList(res http.ResponseWriter, req *http.Request) {
 	all := req.FormValue("all")
 	if all == "1" || all == "true" {
@@ -39,7 +39,7 @@ func ImageList(res http.ResponseWriter, req *http.Request) {
 	}
 	log.WithField("filters", filters).WithField("all", all).Debug("image list")
 
-	srcs, _ := iopodman.ListImages().Call(podman)
+	srcs, _ := iopodman.ListImages().Call(context.TODO(), podman)
 	var imgs []types.ImageSummary
 	for _, src := range srcs {
 		if filters.Include("label") && !filters.MatchKVList("label", src.Labels) {
@@ -110,7 +110,7 @@ func ImageList(res http.ResponseWriter, req *http.Request) {
 		imgs = append(imgs, img)
 	}
 	JSONResponse(res, imgs)
-}
+}*/
 
 // ImageBuild is a handler function for /build.
 func ImageBuild(res http.ResponseWriter, req *http.Request) {
@@ -145,7 +145,7 @@ func ImageBuild(res http.ResponseWriter, req *http.Request) {
 	}
 
 	log.WithField("info", in).Debug("build")
-	recv, err := iopodman.BuildImage().Send(podman, varlink.More, in)
+	recv, err := iopodman.BuildImage().Send(context.TODO(), podman, varlink.More, in)
 	if err != nil {
 		StreamError(res, err)
 		log.
@@ -154,7 +154,7 @@ func ImageBuild(res http.ResponseWriter, req *http.Request) {
 	}
 	flusher, hasFlusher := res.(http.Flusher)
 	for {
-		status, flags, err := recv()
+		status, flags, err := recv(context.TODO())
 		if err != nil {
 			StreamError(res, err)
 			log.
@@ -196,7 +196,7 @@ func ImageCreate(res http.ResponseWriter, req *http.Request) {
 	}
 	log.WithField("name", name).Debug("image pull")
 
-	recv, err := iopodman.PullImage().Send(podman, varlink.More, name)
+	recv, err := iopodman.PullImage().Send(context.TODO(), podman, varlink.More, name)
 	if err != nil {
 		StreamError(res, err)
 		log.
@@ -207,7 +207,7 @@ func ImageCreate(res http.ResponseWriter, req *http.Request) {
 
 	flusher, hasFlusher := res.(http.Flusher)
 	for {
-		status, flags, err := recv()
+		status, flags, err := recv(context.TODO())
 		if err != nil {
 			StreamError(res, err)
 			log.
@@ -255,7 +255,7 @@ func ImageInspect(res http.ResponseWriter, req *http.Request) {
 	log.Debug("image inspect")
 
 	// podman for some reason returns this as JSON string, need to decode
-	payload, err := iopodman.InspectImage().Call(podman, name)
+	payload, err := iopodman.InspectImage().Call(context.TODO(), podman, name)
 	if notFound, ok := err.(*iopodman.ImageNotFound); ok {
 		WriteError(res, http.StatusNotFound, errors.New(notFound.Reason))
 		return
@@ -378,8 +378,8 @@ func ImageHistory(res http.ResponseWriter, req *http.Request) {
 	log := log.WithField("name", name)
 	log.Debug("image history")
 
-	var history []types.ImageHistory
-	backend, err := iopodman.HistoryImage().Call(podman, name)
+	var history []image.HistoryResponseItem
+	backend, err := iopodman.HistoryImage().Call(context.TODO(), podman, name)
 	if notFound, ok := err.(*iopodman.ImageNotFound); ok {
 		WriteError(res, http.StatusNotFound, errors.New(notFound.Reason))
 		return
@@ -390,7 +390,7 @@ func ImageHistory(res http.ResponseWriter, req *http.Request) {
 	}
 
 	for _, l := range backend {
-		layer := types.ImageHistory{
+		layer := image.HistoryResponseItem{
 			ID:        l.Id,
 			CreatedBy: l.CreatedBy,
 			Tags:      l.Tags,
@@ -432,7 +432,7 @@ func ImageTag(res http.ResponseWriter, req *http.Request) {
 	}
 	log.Debug("image tag")
 
-	_, err := iopodman.TagImage().Call(podman, source, target)
+	_, err := iopodman.TagImage().Call(context.TODO(), podman, source, target)
 	if notFound, ok := err.(*iopodman.ImageNotFound); ok {
 		WriteError(res, http.StatusNotFound, errors.New(notFound.Reason))
 		return
@@ -458,6 +458,7 @@ func ImageDelete(res http.ResponseWriter, req *http.Request) {
 	log.Debug("image delete")
 
 	deleted, err := iopodman.RemoveImage().Call(
+		context.TODO(),
 		podman,
 		name,
 		force == "true" || force == "1",
@@ -471,10 +472,10 @@ func ImageDelete(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	JSONResponse(res, []types.ImageDelete{types.ImageDelete{Deleted: deleted}})
+	JSONResponse(res, []types.ImageDeleteResponseItem{{Deleted: deleted}})
 }
 
-// ImageSearch is a handler function for /images/search.
+/*// ImageSearch is a handler function for /images/search.
 func ImageSearch(res http.ResponseWriter, req *http.Request) {
 	query := req.FormValue("term")
 	if query == "" {
@@ -537,7 +538,7 @@ func ImageSearch(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	srcs, err := iopodman.SearchImages().Call(podman, query, limit, filter)
+	srcs, err := iopodman.SearchImages().Call(context.TODO(), podman, query, limit, filter)
 	if err != nil {
 		WriteError(res, http.StatusInternalServerError, err)
 		return
@@ -554,7 +555,7 @@ func ImageSearch(res http.ResponseWriter, req *http.Request) {
 		})
 	}
 	JSONResponse(res, images)
-}
+}*/
 
 func exportImages(res http.ResponseWriter, names []string, log *log.Entry) {
 	// prepare temp file for the tarball
@@ -611,7 +612,7 @@ func exportImages(res http.ResponseWriter, names []string, log *log.Entry) {
 		tags = append(tags, nt.Tag())
 	}
 
-	_, err = iopodman.ExportImage().Call(podman, names[0], dest, false, tags)
+	_, err = iopodman.ExportImage().Call(context.TODO(), podman, names[0], dest, false, tags)
 	if notFound, ok := err.(*iopodman.ImageNotFound); ok {
 		WriteError(res, http.StatusNotFound, errors.New(notFound.Reason))
 		return
