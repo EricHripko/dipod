@@ -1,0 +1,788 @@
+
+[[override]]
+name = "github.com/Azure/go-ansiterm"
+revision = "d6e3b3328b783f23731bc4d058875b0371ff8109"
+
+
+[[override]]
+name = "github.com/Microsoft/hcsshim"
+revision = "b3f49c06ffaeef24d09c6c08ec8ec8425a0303e2"
+
+
+[[override]]
+name = "github.com/Microsoft/go-winio"
+revision = "6c72808b55902eae4c5943626030429ff20f3b63"
+
+
+[[override]]
+name = "github.com/docker/libtrust"
+revision = "9cbd2a1374f46905c68a4eb3694a130610adc62a"
+
+
+[[override]]
+name = "github.com/golang/gddo"
+revision = "72a348e765d293ed6d1ded7b699591f14d6cd921"
+
+
+[[override]]
+name = "github.com/google/uuid"
+revision = "0cd6bf5da1e1c83f8b45653022c74f71af0538a4"
+
+
+[[override]]
+name = "github.com/gorilla/mux"
+revision = "00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15"
+
+
+[[override]]
+name = "github.com/Microsoft/opengcs"
+revision = "a10967154e143a36014584a6f664344e3bb0aa64"
+
+
+[[override]]
+name = "github.com/creack/pty"
+revision = "3a6a957789163cacdfe0e291617a1c8e80612c11"
+
+
+[[override]]
+name = "github.com/konsorten/go-windows-terminal-sequences"
+revision = "f55edac94c9bbba5d6182a4be46d86a2c9b5b50e"
+
+
+[[override]]
+name = "github.com/mattn/go-shellwords"
+revision = "36a9b3c57cb5caa559ff63fb7e9b585f1c00df75"
+
+
+[[override]]
+name = "github.com/sirupsen/logrus"
+revision = "839c75faf7f98a33d445d181f3018b5c3409a45e"
+
+
+[[override]]
+name = "github.com/tchap/go-patricia"
+revision = "a7f0089c6f496e8e70402f61733606daa326cac5"
+
+
+[[override]]
+name = "golang.org/x/net"
+revision = "f3200d17e092c607f615320ecaad13d87ad9a2b3"
+
+
+[[override]]
+name = "golang.org/x/sys"
+revision = "6d18c012aee9febd81bbf9806760c8c4480e870d"
+
+
+[[override]]
+name = "github.com/docker/go-units"
+revision = "519db1ee28dcc9fd2474ae59fca29a810482bfb1"
+
+
+[[override]]
+name = "github.com/docker/go-connections"
+revision = "7395e3f8aa162843a74ed6d48e79627d9792ac55"
+
+
+[[override]]
+name = "golang.org/x/text"
+revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
+
+
+[[override]]
+name = "github.com/google/go-cmp"
+revision = "3af367b6b30c263d47e8895973edcca9a49cf029"
+
+
+[[override]]
+name = "github.com/syndtr/gocapability"
+revision = "d98352740cb2c55f81556b63d4a1ec64c5a319c2"
+
+
+[[override]]
+name = "github.com/RackSec/srslog"
+revision = "a4725f04ec91af1a91b380da679d6e0c2f061e59"
+
+
+[[override]]
+name = "github.com/imdario/mergo"
+revision = "1afb36080aec31e0d1528973ebe6721b191b0369"
+
+
+[[override]]
+name = "golang.org/x/sync"
+revision = "e225da77a7e68af35c70ccbf71af2b83e6acac3c"
+
+
+[[override]]
+name = "github.com/moby/buildkit"
+revision = "4f4e03067523b2fc5ca2f17514a5e75ad63e02fb"
+
+
+[[override]]
+name = "github.com/tonistiigi/fsutil"
+revision = "0f039a052ca1da01626278199624b62aed9b3729"
+
+
+[[override]]
+name = "github.com/grpc-ecosystem/grpc-opentracing"
+revision = "8e809c8a86450a29b90dcc9efbf062d0fe6d9746"
+
+
+[[override]]
+name = "github.com/opentracing/opentracing-go"
+revision = "1361b9cd60be79c4c3a7fa9841b3c132e40066a7"
+
+
+[[override]]
+name = "github.com/google/shlex"
+revision = "e7afc7fbc51079733e9468cdfd1efcd7d196cd1d"
+
+
+[[override]]
+name = "github.com/opentracing-contrib/go-stdlib"
+revision = "b1a47cfbdd7543e70e9ef3e73d0802ad306cc1cc"
+
+
+[[override]]
+name = "github.com/mitchellh/hashstructure"
+revision = "2bca23e0e452137f789efbc8610126fd8b94f73b"
+
+
+[[override]]
+name = "github.com/gofrs/flock"
+revision = "392e7fae8f1b0bdbd67dad7237d23f618feb6dbb"
+
+
+[[override]]
+name = "github.com/docker/libnetwork"
+revision = "feeff4f0a3fd2a2bb19cf67c826082c66ffaaed9"
+
+
+[[override]]
+name = "github.com/docker/go-events"
+revision = "9461782956ad83b30282bf90e31fa6a70c255ba9"
+
+
+[[override]]
+name = "github.com/armon/go-radix"
+revision = "e39d623f12e8e41c7b5529e9a9dd67a1e2261f80"
+
+
+[[override]]
+name = "github.com/armon/go-metrics"
+revision = "eb0af217e5e9747e41dd5303755356b62d28e3ec"
+
+
+[[override]]
+name = "github.com/hashicorp/go-msgpack"
+revision = "71c2886f5a673a35f909803f38ece5810165097b"
+
+
+[[override]]
+name = "github.com/hashicorp/memberlist"
+revision = "3d8438da9589e7b608a83ffac1ef8211486bcb7c"
+
+
+[[override]]
+name = "github.com/sean-/seed"
+revision = "e2103e2c35297fb7e17febb81e49b312087a2372"
+
+
+[[override]]
+name = "github.com/hashicorp/errwrap"
+revision = "8a6fb523712970c966eefc6b39ed2c5e74880354"
+
+
+[[override]]
+name = "github.com/hashicorp/go-sockaddr"
+revision = "c7188e74f6acae5a989bdc959aa779f8b9f42faf"
+
+
+[[override]]
+name = "github.com/hashicorp/go-multierror"
+revision = "886a7fbe3eb1c874d46f623bfa70af45f425b3d1"
+
+
+[[override]]
+name = "github.com/hashicorp/serf"
+revision = "598c54895cc5a7b1a24a398d635e8c0ea0959870"
+
+
+[[override]]
+name = "github.com/docker/libkv"
+revision = "458977154600b9f23984d9f4b82e79570b5ae12b"
+
+
+[[override]]
+name = "github.com/vishvananda/netns"
+revision = "7109fa855b0ff1ebef7fbd2f6aa613e8db7cfbc0"
+
+
+[[override]]
+name = "github.com/vishvananda/netlink"
+revision = "a2ad57a690f3caf3015351d2d6e1c0b95c349752"
+
+
+[[override]]
+name = "github.com/BurntSushi/toml"
+revision = "3012a1dbe2e4bd1391d42b32f0577cb7bbc7f005"
+
+
+[[override]]
+name = "github.com/samuel/go-zookeeper"
+revision = "d0e0d8e11f318e000a8cc434616d69e329edc374"
+
+
+[[override]]
+name = "github.com/deckarep/golang-set"
+revision = "ef32fa3046d9f249d399f98ebaf9be944430fd1d"
+
+
+[[override]]
+name = "github.com/coreos/etcd"
+revision = "d57e8b8d97adfc4a6c224fe116714bf1a1f3beb9"
+
+
+[[override]]
+name = "github.com/coreos/go-semver"
+revision = "8ab6407b697782a06568d4b7f1db25550ec2e4c6"
+
+
+[[override]]
+name = "github.com/ugorji/go"
+revision = "b4c50a2b199d93b13dc15e78929cfb23bfdf21ab"
+
+
+[[override]]
+name = "github.com/hashicorp/consul"
+revision = "9a9cc9341bb487651a0399e3fc5e1e8a42e62dd9"
+
+
+[[override]]
+name = "github.com/miekg/dns"
+revision = "e57bf427e68187a27e22adceac868350d7a7079b"
+
+
+[[override]]
+name = "github.com/ishidawataru/sctp"
+revision = "6e2cb1366111dcf547c13531e3a263a067715847"
+
+
+[[override]]
+name = "go.etcd.io/bbolt"
+revision = "a0458a2b35708eef59eb5f620ceb3cd1c01a824d"
+
+
+[[override]]
+name = "github.com/docker/distribution"
+revision = "0d3efadf0154c2b8a4e7b6621fff9809655cc580"
+
+
+[[override]]
+name = "github.com/vbatts/tar-split"
+revision = "620714a4c508c880ac1bdda9c8370a2b19af1a55"
+
+
+[[override]]
+name = "github.com/opencontainers/go-digest"
+revision = "279bed98673dd5bef374d3b6e4b09e2af76183bf"
+
+
+[[override]]
+name = "github.com/mistifyio/go-zfs"
+revision = "f784269be439d704d3dfa1906f45dd848fed2beb"
+
+
+[[override]]
+name = "google.golang.org/grpc"
+revision = "39e8a7b072a67ca2a75f57fa2e0d50995f5b22f6"
+
+
+[[override]]
+name = "github.com/opencontainers/runc"
+revision = "dc9208a3303feef5b3839f4323d9beb36df0a9dd"
+
+
+[[override]]
+name = "github.com/opencontainers/runtime-spec"
+revision = "29686dbc5559d93fb1ef402eeda3e35c38d75af4"
+
+
+[[override]]
+name = "github.com/opencontainers/image-spec"
+revision = "d60099175f88c47cd379c4738d158884749ed235"
+
+
+[[override]]
+name = "github.com/seccomp/libseccomp-golang"
+revision = "689e3c1541a84461afc49c1c87352a6cedf72e9c"
+
+
+[[override]]
+name = "github.com/coreos/go-systemd"
+revision = "39ca1b05acc7ad1220e09f133283b8859a8b71ab"
+
+
+[[override]]
+name = "github.com/godbus/dbus"
+revision = "5f6efc7ef2759c81b7ba876593971bfce311eab3"
+
+
+[[override]]
+name = "github.com/Graylog2/go-gelf"
+revision = "1550ee647df0510058c9d67a45c56f18911d80b8"
+
+
+[[override]]
+name = "github.com/fluent/fluent-logger-golang"
+revision = "7a6c9dcd7f14c2ed5d8c55c11b894e5455ee311b"
+
+
+[[override]]
+name = "github.com/philhofer/fwd"
+revision = "bb6d471dc95d4fe11e432687f8b70ff496cf3136"
+
+
+[[override]]
+name = "github.com/tinylib/msgp"
+revision = "af6442a0fcf6e2a1b824f70dd0c734f01e817751"
+
+
+[[override]]
+name = "github.com/fsnotify/fsnotify"
+revision = "1485a34d5d5723fea214f5710708e19a831720e4"
+
+
+[[override]]
+name = "github.com/aws/aws-sdk-go"
+revision = "2590bc875c54c9fda225d8e4e56a9d28d90c6a47"
+
+
+[[override]]
+name = "github.com/jmespath/go-jmespath"
+revision = "c2b33e8439af944379acbdd9c3a5fe0bc44bd8a5"
+
+
+[[override]]
+name = "github.com/bsphere/le_go"
+revision = "7a984a84b5492ae539b79b62fb4a10afc63c7bcf"
+
+
+[[override]]
+name = "golang.org/x/oauth2"
+revision = "ef147856a6ddbb60760db74283d2424e98c87bff"
+
+
+[[override]]
+name = "google.golang.org/api"
+revision = "de943baf05a022a8f921b544b7827bacaba1aed5"
+
+
+[[override]]
+name = "go.opencensus.io"
+revision = "c3ed530f775d85e577ca652cb052a52c078aad26"
+
+
+[[override]]
+name = "cloud.google.com/go"
+revision = "0ebda48a7f143b1cce9eb37a8c1106ac762a3430"
+
+
+[[override]]
+name = "github.com/googleapis/gax-go"
+revision = "317e0006254c44a0ac427cc52a0e083ff0b9622f"
+
+
+[[override]]
+name = "google.golang.org/genproto"
+revision = "02b4e95473316948020af0b7a4f0f22c73929b0e"
+
+
+[[override]]
+name = "github.com/containerd/containerd"
+revision = "acdcf13d5eaf0dfe0eaeabe7194a82535549bc2b"
+
+
+[[override]]
+name = "github.com/containerd/fifo"
+revision = "bda0ff6ed73c67bfb5e62bc9c697f146b7fd7f13"
+
+
+[[override]]
+name = "github.com/containerd/continuity"
+revision = "26c1120b8d4107d2471b93ad78ef7ce1fc84c4c4"
+
+
+[[override]]
+name = "github.com/containerd/cgroups"
+revision = "5fbad35c2a7e855762d3c60f2e474ffcad0d470a"
+
+
+[[override]]
+name = "github.com/containerd/console"
+revision = "0650fd9eeb50bab4fc99dceb9f2e14cf58f36e7f"
+
+
+[[override]]
+name = "github.com/containerd/go-runc"
+revision = "a2952bc25f5116103a8b78f3817f6df759aa7def"
+
+
+[[override]]
+name = "github.com/containerd/typeurl"
+revision = "2a93cfde8c20b23de8eb84a5adbc234ddf7a9e8d"
+
+
+[[override]]
+name = "github.com/containerd/ttrpc"
+revision = "92c8520ef9f86600c650dd540266a007bf03670f"
+
+
+[[override]]
+name = "github.com/gogo/googleapis"
+revision = "d31c731455cb061f42baff3bda55bad0118b126b"
+
+
+[[override]]
+name = "github.com/docker/swarmkit"
+revision = "49e35619b18200845c9365c1e953440c28868002"
+
+
+[[override]]
+name = "github.com/gogo/protobuf"
+revision = "ba06b47c162d49f2af050fb4c75bcbc86a159d5c"
+
+
+[[override]]
+name = "github.com/golang/protobuf"
+revision = "aa810b61a9c79d51363740d207bb46cf8e620ed5"
+
+
+[[override]]
+name = "github.com/cloudflare/cfssl"
+revision = "5d63dbd981b5c408effbb58c442d54761ff94fbd"
+
+
+[[override]]
+name = "github.com/fernet/fernet-go"
+revision = "9eac43b88a5efb8651d24de9b68e87567e029736"
+
+
+[[override]]
+name = "github.com/google/certificate-transparency-go"
+revision = "37a384cd035e722ea46e55029093e26687138edf"
+
+
+[[override]]
+name = "golang.org/x/crypto"
+revision = "bac4c82f69751a6dd76e702d54b3ceb88adab236"
+
+
+[[override]]
+name = "golang.org/x/time"
+revision = "fbb02b2291d28baffd63558aa44b4b56f178d650"
+
+
+[[override]]
+name = "github.com/hashicorp/go-memdb"
+revision = "cb9a474f84cc5e41b273b20c6927680b2a8776ad"
+
+
+[[override]]
+name = "github.com/hashicorp/go-immutable-radix"
+revision = "826af9ccf0feeee615d546d69b11f8e98da8c8f1"
+
+source = "git://github.com/tonistiigi/go-immutable-radix.git"
+
+[[override]]
+name = "github.com/hashicorp/golang-lru"
+revision = "7f827b33c0f158ec5dfbba01bb0b14a4541fd81d"
+
+
+[[override]]
+name = "github.com/coreos/pkg"
+revision = "3ac0863d7acf3bc44daf49afef8919af12f704ef"
+
+
+[[override]]
+name = "code.cloudfoundry.org/clock"
+revision = "02e53af36e6c978af692887ed449b74026d76fec"
+
+
+[[override]]
+name = "github.com/prometheus/client_golang"
+revision = "c5b7fccd204277076155f10851dad72b76a49317"
+
+
+[[override]]
+name = "github.com/beorn7/perks"
+revision = "e7f67b54abbeac9c40a31de0f81159e4cafebd6a"
+
+
+[[override]]
+name = "github.com/prometheus/client_model"
+revision = "6f3806018612930941127f2a7c6c453ba2c527d2"
+
+
+[[override]]
+name = "github.com/prometheus/common"
+revision = "7600349dcfe1abd18d72d3a1770870d9800a7801"
+
+
+[[override]]
+name = "github.com/prometheus/procfs"
+revision = "7d6f385de8bea29190f15ba9931442a0eaef9af7"
+
+
+[[override]]
+name = "github.com/matttproud/golang_protobuf_extensions"
+revision = "c12348ce28de40eed0136aa2b644d0ee0650e56c"
+
+
+[[override]]
+name = "github.com/pkg/errors"
+revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
+
+
+[[override]]
+name = "github.com/grpc-ecosystem/go-grpc-prometheus"
+revision = "c225b8c3b01faf2899099b768856a9e916e5087b"
+
+
+[[override]]
+name = "github.com/cespare/xxhash"
+revision = "d7df74196a9e781ede915320c11c378c1b2f3a1f"
+
+
+[[override]]
+name = "github.com/spf13/cobra"
+revision = "ef82de70bb3f60c65fb8eebacbb2d122ef517385"
+
+
+[[override]]
+name = "github.com/spf13/pflag"
+revision = "4cb166e4f25ac4e8016a3595bbf7ea2e9aa85a2c"
+
+source = "https://github.com/thaJeztah/pflag.git"
+
+[[override]]
+name = "github.com/inconshreveable/mousetrap"
+revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
+
+
+[[override]]
+name = "github.com/morikuni/aec"
+revision = "39771216ff4c63d11f5e604076f9c45e8be1067b"
+
+
+[[override]]
+name = "github.com/docker/go-metrics"
+revision = "d466d4f6fd960e01820085bd7e1a24426ee7ef18"
+
+
+[[override]]
+name = "github.com/opencontainers/selinux"
+revision = "4defb1c884d2f4f9c890c615380f20f7fc215cf3"
+
+
+[[override]]
+name = "github.com/agl/ed25519"
+revision = "5312a61534124124185d41f09206b9fef1d88403"
+
+
+[[override]]
+name = "github.com/cpuguy83/go-md2man"
+revision = "20f5889cbdc3c73dbd2862796665e7c465ade7d1"
+
+
+[[override]]
+name = "github.com/davecgh/go-spew"
+revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
+
+
+[[override]]
+name = "github.com/docker/compose-on-kubernetes"
+revision = "78e6a00beda64ac8ccb9fec787e601fe2ce0d5bb"
+
+
+[[override]]
+name = "github.com/docker/docker"
+revision = "58c2615208962a458ed94f4b6262eb27e5e021cd"
+
+
+[[override]]
+name = "github.com/docker/docker-credential-helpers"
+revision = "54f0238b6bf101fc3ad3b34114cb5520beb562f5"
+
+
+[[override]]
+name = "github.com/docker/go"
+revision = "d30aec9fd63c35133f8f79c3412ad91a3b08be06"
+
+
+[[override]]
+name = "github.com/evanphx/json-patch"
+revision = "72bf35d0ff611848c1dc9df0f976c81192392fa5"
+
+
+[[override]]
+name = "github.com/golang/glog"
+revision = "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
+
+
+[[override]]
+name = "github.com/google/gofuzz"
+revision = "24818f796faf91cd76ec7bddd72458fbced7a6c1"
+
+
+[[override]]
+name = "github.com/googleapis/gnostic"
+revision = "7c663266750e7d82587642f65e60bc4083f1f84e"
+
+
+[[override]]
+name = "github.com/grpc-ecosystem/grpc-gateway"
+revision = "1a03ca3bad1e1ebadaedd3abb76bc58d4ac8143b"
+
+
+[[override]]
+name = "github.com/jaguilar/vt100"
+revision = "ad4c4a5743050fb7f88ce968dca9422f72a0e3f2"
+
+source = "git://github.com/tonistiigi/vt100.git"
+
+[[override]]
+name = "github.com/json-iterator/go"
+revision = "0ff49de124c6f76f8494e194af75bde0f1a49a29"
+
+
+[[override]]
+name = "github.com/miekg/pkcs11"
+revision = "210dc1e16747c5ba98a03bcbcf728c38086ea357"
+
+
+[[override]]
+name = "github.com/mitchellh/mapstructure"
+revision = "f15292f7a699fcc1a38a80977f80a046874ba8ac"
+
+
+[[override]]
+name = "github.com/modern-go/concurrent"
+revision = "bacd9c7ef1dd9b15be4a9909b8ac7a4e313eec94"
+
+
+[[override]]
+name = "github.com/modern-go/reflect2"
+revision = "4b7aa43c6742a2c18fdef89dd197aaae7dac7ccd"
+
+
+[[override]]
+name = "github.com/russross/blackfriday"
+revision = "1d6b8e9301e720b08a8938b8c25c018285885438"
+
+
+[[override]]
+name = "github.com/shurcooL/sanitized_anchor_name"
+revision = "10ef21a441db47d8b13ebcc5fd2310f636973c77"
+
+
+[[override]]
+name = "github.com/theupdateframework/notary"
+revision = "d6e1431feb32348e0650bf7551ac5cffd01d857b"
+
+
+[[override]]
+name = "github.com/tonistiigi/units"
+revision = "6950e57a87eaf136bbe44ef2ec8e75b9e3569de2"
+
+
+[[override]]
+name = "github.com/xeipuuv/gojsonpointer"
+revision = "02993c407bfbf5f6dae44c4f4b1cf6a39b5fc5bb"
+
+
+[[override]]
+name = "github.com/xeipuuv/gojsonreference"
+revision = "bd5ef7bd5415a7ac448318e64f11a24cd21e594b"
+
+
+[[override]]
+name = "github.com/xeipuuv/gojsonschema"
+revision = "f971f3cd73b2899de6923801c147f075263e0c50"
+
+
+[[override]]
+name = "gopkg.in/inf.v0"
+revision = "d2d2541c53f18d2a059457998ce2876cc8e67cbf"
+
+
+[[override]]
+name = "gopkg.in/yaml.v2"
+revision = "53403b58ad1b561927d19068c655246f2db79d48"
+
+
+[[override]]
+name = "gotest.tools"
+revision = "1083505acf35a0bd8a696b26837e1fb3187a7a83"
+
+
+[[override]]
+name = "k8s.io/api"
+revision = "35e20aa79eb876d1014e0383c7fcda49e52c5d76"
+
+
+[[override]]
+name = "k8s.io/apimachinery"
+revision = "27d36303b6556f377b4f34e64705fa9024a12b0c"
+
+
+[[override]]
+name = "k8s.io/apiextensions-apiserver"
+revision = "49e3d608220c016ce72a3bd9524eed4dcef587df"
+
+
+[[override]]
+name = "k8s.io/apiserver"
+revision = "3c8b233e046cffa0f8b63fff9e3ba4014a1ef456"
+
+
+[[override]]
+name = "k8s.io/client-go"
+revision = "f68efa97b39e67ee47d4b4683d0037d721f077be"
+
+
+[[override]]
+name = "k8s.io/component-base"
+revision = "f573d376509cec44c50b8d79741bc939ec7ede56"
+
+
+[[override]]
+name = "k8s.io/klog"
+revision = "3ca30a56d8a775276f9cdae009ba326fdc05af7f"
+
+
+[[override]]
+name = "k8s.io/kube-openapi"
+revision = "0270cf2f1c1d995d34b36019a6f65d58e6e33ad4"
+
+
+[[override]]
+name = "k8s.io/kubernetes"
+revision = "d647ddbd755faf07169599a625faf302ffc34458"
+
+
+[[override]]
+name = "k8s.io/utils"
+revision = "69764acb6e8e900b7c05296c5d3c9c19545475f9"
+
+
+[[override]]
+name = "sigs.k8s.io/yaml"
+revision = "fd68e9863619f6ec2fdd8625fe1f02e7c877e480"
+
+
+[[override]]
+name = "vbom.ml/util"
+revision = "256737ac55c46798123f754ab7d2c784e2c71783"
+
