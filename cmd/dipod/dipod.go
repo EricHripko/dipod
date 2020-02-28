@@ -14,6 +14,6 @@ func main() {
 
 	// connect to podman
 	dipod.Connect()
-	// start moby proxy
+	// start docker proxy
 	dipod.Serve()
 }
