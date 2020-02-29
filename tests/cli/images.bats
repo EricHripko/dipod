@@ -495,3 +495,29 @@ function cleanup {
     [[ "$(podman images --filter="reference=$unused" --quiet)" == "" ]]
     [[ "$(podman images --filter="reference=$untagged" --quiet)" == "" ]]
 }
+
+@test "images: import" {
+    # Arrange
+    cleanup
+
+    # Act
+    run docker image load --input $BATS_TEST_DIRNAME/images-load/alpine.tar
+    echo $output
+
+    # Assert
+    [[ "$status" -eq 0 ]]
+    [[ "$(podman images --filter="reference=docker.io/library/alpine" --quiet)" == "e7d92cdc71fe" ]]
+}
+
+@test "images: import quiet" {
+    # Arrange
+    cleanup
+
+    # Act
+    run docker image load --input $BATS_TEST_DIRNAME/images-load/alpine.tar --quiet
+    echo $output
+
+    # Assert
+    [[ "$status" -eq 0 ]]
+    [[ "$(podman images --filter="reference=docker.io/library/alpine" --quiet)" == "e7d92cdc71fe" ]]
+}
