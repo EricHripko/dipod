@@ -6,9 +6,8 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
-	"net/http"
-	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,37 +16,82 @@ import (
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/go-connections/nat"
-	"github.com/gorilla/mux"
+	specs "github.com/opencontainers/image-spec/specs-go/v1"
 	log "github.com/sirupsen/logrus"
 	"github.com/varlink/go/varlink"
 )
 
-// ImageList is a handler function for /images/json.
-/*
-func ImageList(res http.ResponseWriter, req *http.Request) {
-	all := req.FormValue("all")
-	if all == "1" || all == "true" {
-		WriteError(res, http.StatusNotImplemented, ErrNotImplemented)
+type imageBackend struct {
+}
+
+func (*imageBackend) ImageDelete(imageRef string, force, prune bool) (res []types.ImageDeleteResponseItem, err error) {
+	item := types.ImageDeleteResponseItem{}
+	item.Deleted, err = iopodman.RemoveImage().Call(
+		context.TODO(),
+		podman,
+		imageRef,
+		force,
+	)
+	if err != nil {
 		return
 	}
-	filters, err := filters.FromParam(req.FormValue("filters"))
-	if err != nil {
-		log.WithError(err).Warn("image list filter fail")
-	}
-	log.WithField("filters", filters).WithField("all", all).Debug("image list")
 
-	srcs, _ := iopodman.ListImages().Call(context.TODO(), podman)
-	var imgs []types.ImageSummary
+	res = append(res, item)
+	return
+}
+
+func (*imageBackend) ImageHistory(imageName string) (res []*image.HistoryResponseItem, err error) {
+	var history []iopodman.ImageHistory
+	history, err = iopodman.HistoryImage().Call(context.TODO(), podman, imageName)
+	if err != nil {
+		return
+	}
+
+	for _, l := range history {
+		layer := &image.HistoryResponseItem{
+			ID:        l.Id,
+			CreatedBy: l.CreatedBy,
+			Tags:      l.Tags,
+			Size:      l.Size,
+			Comment:   l.Comment,
+		}
+		if created, err := time.Parse(time.RFC3339, l.Created); err == nil {
+			layer.Created = created.Unix()
+		} else {
+			log.
+				WithError(err).
+				WithField("created", l.Created).Warn("created parse fail")
+		}
+
+		res = append(res, layer)
+	}
+	return
+}
+
+func (*imageBackend) Images(imageFilters filters.Args, all bool, withExtraAttrs bool) (images []*types.ImageSummary, err error) {
+	if all {
+		err = errors.New("not implemented")
+		return
+	}
+
+	var srcs []iopodman.Image
+	srcs, err = iopodman.ListImages().Call(context.TODO(), podman)
+	if err != nil {
+		return
+	}
+
 	for _, src := range srcs {
-		if filters.Include("label") && !filters.MatchKVList("label", src.Labels) {
+		if imageFilters.Contains("label") && !imageFilters.MatchKVList("label", src.Labels) {
 			continue
 		}
-		if filters.Include("reference") {
+		if imageFilters.Contains("reference") {
 			matched := false
-			for _, search := range filters.Get("reference") {
+			for _, search := range imageFilters.Get("reference") {
 				if matched {
 					break
 				}
@@ -81,7 +125,7 @@ func ImageList(res http.ResponseWriter, req *http.Request) {
 			}
 		}
 
-		img := types.ImageSummary{
+		image := &types.ImageSummary{
 			Containers:  src.Containers,
 			Created:     0,
 			ID:          src.Id,
@@ -93,147 +137,24 @@ func ImageList(res http.ResponseWriter, req *http.Request) {
 			SharedSize:  0,
 			VirtualSize: src.VirtualSize,
 		}
-		if img.RepoTags == nil {
-			img.RepoTags = []string{"<none>:<none>"}
+		if image.RepoTags == nil {
+			image.RepoTags = []string{"<none>:<none>"}
 		}
-		if img.RepoDigests == nil {
-			img.RepoDigests = []string{"<none>@<none>"}
+		if image.RepoDigests == nil {
+			image.RepoDigests = []string{"<none>@<none>"}
 		}
 		if created, err := time.Parse(time.RFC3339, src.Created); err == nil {
-			img.Created = created.Unix()
+			image.Created = created.Unix()
 		} else {
 			log.
 				WithError(err).
 				WithField("created", src.Created).Warn("created parse fail")
 		}
 
-		imgs = append(imgs, img)
+		images = append(images, image)
 	}
-	JSONResponse(res, imgs)
-}*/
-
-// ImageBuild is a handler function for /build.
-func ImageBuild(res http.ResponseWriter, req *http.Request) {
-	log.Debug("image build", req.RequestURI)
-
-	// stash context tarball to a temp file
-	ctx, err := ioutil.TempFile("", "dipod-build")
-	if err != nil {
-		StreamError(res, err)
-		return
-	}
-	defer os.Remove(ctx.Name())
-	io.Copy(ctx, req.Body)
-
-	// parse request uri
-	url, err := url.ParseRequestURI(req.RequestURI)
-	if err != nil {
-		StreamError(res, err)
-		return
-	}
-	query := url.Query()
-	in := iopodman.BuildInfo{
-		Dockerfiles: []string{query.Get("dockerfile")},
-		ContextDir:  ctx.Name(),
-	}
-	tags := query["t"]
-	if len(tags) > 0 {
-		in.Output = tags[0]
-	}
-	if len(tags) > 1 {
-		in.AdditionalTags = tags[1:]
-	}
-
-	log.WithField("info", in).Debug("build")
-	recv, err := iopodman.BuildImage().Send(context.TODO(), podman, varlink.More, in)
-	if err != nil {
-		StreamError(res, err)
-		log.
-			WithField("err", ErrorMessage(err)).
-			Error("image build fail")
-	}
-	flusher, hasFlusher := res.(http.Flusher)
-	for {
-		status, flags, err := recv(context.TODO())
-		if err != nil {
-			StreamError(res, err)
-			log.
-				WithField("err", ErrorMessage(err)).
-				Error("image build fail")
-		} else {
-			for _, log := range status.Logs {
-				msg := jsonmessage.JSONMessage{
-					Stream: log,
-					ID:     status.Id,
-				}
-				JSONResponse(res, msg)
-			}
-		}
-
-		if hasFlusher {
-			flusher.Flush()
-		}
-		if flags&varlink.Continues != varlink.Continues {
-			break
-		}
-	}
+	return
 }
-
-// ImageCreate is a handler function for /images/create.
-func ImageCreate(res http.ResponseWriter, req *http.Request) {
-	var (
-		fromImage = req.FormValue("fromImage")
-		_         = req.FormValue("fromSrc")
-		_         = req.FormValue("repo")
-		tag       = req.FormValue("tag")
-	)
-
-	name := fromImage + ":" + tag
-	// no slash => pulling from DockerHub, docker cli shadily strips docker.io/
-	// prefix even if user explicitly specified it
-	if !strings.ContainsAny(name, "/") {
-		name = "docker.io/library/" + name
-	}
-	log.WithField("name", name).Debug("image pull")
-
-	recv, err := iopodman.PullImage().Send(context.TODO(), podman, varlink.More, name)
-	if err != nil {
-		StreamError(res, err)
-		log.
-			WithField("err", ErrorMessage(err)).
-			Error("image pull fail")
-		return
-	}
-
-	flusher, hasFlusher := res.(http.Flusher)
-	for {
-		status, flags, err := recv(context.TODO())
-		if err != nil {
-			StreamError(res, err)
-			log.
-				WithField("err", ErrorMessage(err)).
-				Error("image pull fail")
-		} else {
-			for _, log := range status.Logs {
-				msg := jsonmessage.JSONMessage{
-					Stream: log,
-					ID:     status.Id,
-				}
-				JSONResponse(res, msg)
-			}
-		}
-
-		if hasFlusher {
-			flusher.Flush()
-		}
-		if flags&varlink.Continues != varlink.Continues {
-			break
-		}
-	}
-}
-
-var errImageName = errors.New("dipod: missing image name")
-var errImageData = errors.New("dipod: cannot decode image data")
 
 func is2ss(i []interface{}) (s []string) {
 	for _, ii := range i {
@@ -242,33 +163,22 @@ func is2ss(i []interface{}) (s []string) {
 	return
 }
 
-// ImageInspect is a handler function for /images/{name}/json.
-func ImageInspect(res http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	name, ok := vars["name"]
-	if !ok {
-		log.WithError(errImageName).Error("image inspect fail")
-		WriteError(res, http.StatusBadRequest, errImageName)
-		return
-	}
-	log := log.WithField("name", name)
-	log.Debug("image inspect")
-
+func (*imageBackend) LookupImage(name string) (image *types.ImageInspect, err error) {
 	// podman for some reason returns this as JSON string, need to decode
-	payload, err := iopodman.InspectImage().Call(context.TODO(), podman, name)
-	if notFound, ok := err.(*iopodman.ImageNotFound); ok {
-		WriteError(res, http.StatusNotFound, errors.New(notFound.Reason))
-		return
-	}
+	var payload string
+	payload, err = iopodman.InspectImage().Call(context.TODO(), podman, name)
 	if err != nil {
-		WriteError(res, http.StatusInternalServerError, err)
 		return
 	}
+
 	data := make(map[string]interface{})
-	json.Unmarshal([]byte(payload), &data)
+	err = json.Unmarshal([]byte(payload), &data)
+	if err != nil {
+		return
+	}
 
 	digest := strings.TrimPrefix(data["Digest"].(string), "sha256:")
-	image := types.ImageInspect{
+	image = &types.ImageInspect{
 		ID:           data["Id"].(string),
 		Container:    digest,
 		Comment:      data["Comment"].(string),
@@ -362,309 +272,192 @@ func ImageInspect(res http.ResponseWriter, req *http.Request) {
 		Type:   rootfs["Type"].(string),
 		Layers: is2ss(rootfs["Layers"].([]interface{})),
 	}
-
-	JSONResponse(res, image)
+	return
 }
 
-// ImageHistory is a handler function for /images/{name}/history.
-func ImageHistory(res http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	name, ok := vars["name"]
-	if !ok {
-		log.WithError(errImageName).Error("image history fail")
-		WriteError(res, http.StatusBadRequest, errImageName)
-		return
-	}
-	log := log.WithField("name", name)
-	log.Debug("image history")
-
-	var history []image.HistoryResponseItem
-	backend, err := iopodman.HistoryImage().Call(context.TODO(), podman, name)
-	if notFound, ok := err.(*iopodman.ImageNotFound); ok {
-		WriteError(res, http.StatusNotFound, errors.New(notFound.Reason))
-		return
-	}
-	if err != nil {
-		WriteError(res, http.StatusInternalServerError, err)
-		return
-	}
-
-	for _, l := range backend {
-		layer := image.HistoryResponseItem{
-			ID:        l.Id,
-			CreatedBy: l.CreatedBy,
-			Tags:      l.Tags,
-			Size:      l.Size,
-			Comment:   l.Comment,
-		}
-		if created, err := time.Parse(time.RFC3339, l.Created); err == nil {
-			layer.Created = created.Unix()
-		} else {
-			log.
-				WithError(err).
-				WithField("created", l.Created).Warn("created parse fail")
-		}
-
-		history = append(history, layer)
-	}
-	JSONResponse(res, history)
-}
-
-// ImageTag is a handler function for /images/{name}/tag.
-func ImageTag(res http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	source, ok := vars["name"]
-	if !ok {
-		log.WithError(errImageName).Error("image tag fail")
-		WriteError(res, http.StatusBadRequest, errImageName)
-		return
-	}
-	target := req.FormValue("repo")
-	tag := req.FormValue("tag")
+func (*imageBackend) TagImage(imageName, repository, tag string) (out string, err error) {
+	target := repository
 	if tag != "" {
 		target += ":" + tag
 	}
-	log := log.WithField("source", source).WithField("target", target)
+	log := log.WithField("source", imageName).WithField("target", target)
 	if target == "" {
-		err := errors.New("dipod: empty target")
+		err = errors.New("dipod: empty target")
 		log.WithError(err).Error("image tag fail")
-		WriteError(res, http.StatusBadRequest, errImageName)
+		return
 	}
 	log.Debug("image tag")
 
-	_, err := iopodman.TagImage().Call(context.TODO(), podman, source, target)
-	if notFound, ok := err.(*iopodman.ImageNotFound); ok {
-		WriteError(res, http.StatusNotFound, errors.New(notFound.Reason))
-		return
-	}
-	if err != nil {
-		WriteError(res, http.StatusInternalServerError, err)
-		return
-	}
-	res.WriteHeader(http.StatusNoContent)
+	out, err = iopodman.TagImage().Call(context.TODO(), podman, imageName, target)
+	return
 }
 
-// ImageDelete is a handler function for /images/{name}.
-func ImageDelete(res http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	name, ok := vars["name"]
-	if !ok {
-		log.WithError(errImageName).Error("image tag fail")
-		WriteError(res, http.StatusBadRequest, errImageName)
-		return
-	}
-	force := req.FormValue("force")
-	log := log.WithField("name", name).WithField("force", force)
-	log.Debug("image delete")
-
-	deleted, err := iopodman.RemoveImage().Call(
-		context.TODO(),
-		podman,
-		name,
-		force == "true" || force == "1",
-	)
-	if notFound, ok := err.(*iopodman.ImageNotFound); ok {
-		WriteError(res, http.StatusNotFound, errors.New(notFound.Reason))
-		return
-	}
-	if err != nil {
-		WriteError(res, http.StatusInternalServerError, err)
-		return
-	}
-
-	JSONResponse(res, []types.ImageDeleteResponseItem{{Deleted: deleted}})
+func (*imageBackend) ImagesPrune(ctx context.Context, pruneFilters filters.Args) (*types.ImagesPruneReport, error) {
+	return nil, errors.New("not implemented")
 }
 
-/*// ImageSearch is a handler function for /images/search.
-func ImageSearch(res http.ResponseWriter, req *http.Request) {
-	query := req.FormValue("term")
-	if query == "" {
-		err := errors.New("dipod: missing term")
-		log.WithError(err).Error("image tag fail")
-		WriteError(res, http.StatusBadRequest, err)
-		return
-	}
-	var limit *int64
-	sLimit := req.FormValue("limit")
-	if sLimit != "" {
-		nLimit, err := strconv.Atoi(sLimit)
-		var lLimit int64
-		if err != nil {
-			log.
-				WithError(err).
-				WithField("limit", sLimit).
-				Warn("image search ignore invalid limit")
-		} else {
-			lLimit = int64(nLimit)
-			limit = &lLimit
-		}
-	}
-	filters, err := filters.FromParam(req.FormValue("filters"))
-	if err != nil {
-		log.WithError(err).Warn("image search filter fail")
-	}
-	log.
-		WithFields(log.Fields{
-			"query":   query,
-			"limit":   sLimit,
-			"filters": filters,
-		}).
-		Debug("image search")
+func (*imageBackend) LoadImage(inTar io.ReadCloser, outStream io.Writer, quiet bool) error {
+	return errors.New("not implemented")
+}
 
-	yes := true
-	no := false
-	filter := iopodman.ImageSearchFilter{}
-	isAutomated := filters.Get("is-automated")
-	if len(isAutomated) > 0 && (isAutomated[0] == "true" || isAutomated[0] == "1") {
-		filter.Is_automated = &yes
-	}
-	if len(isAutomated) > 0 && (isAutomated[0] == "false" || isAutomated[0] == "0") {
-		filter.Is_automated = &no
-	}
-	isOfficial := filters.Get("is-official")
-	if len(isOfficial) > 0 && (isOfficial[0] == "true" || isOfficial[0] == "1") {
-		filter.Is_official = &yes
-	}
-	if len(isOfficial) > 0 && (isOfficial[0] == "false" || isOfficial[0] == "0") {
-		filter.Is_official = &no
-	}
-	stars := filters.Get("stars")
-	if len(stars) > 0 {
-		nStars, err := strconv.Atoi(stars[0])
-		if err != nil {
-			log.WithError(err).Warn("image search star filter fail")
-		} else {
-			filter.Star_count = int64(nStars)
-		}
-	}
+func (*imageBackend) ImportImage(src string, repository, platform string, tag string, msg string, inConfig io.ReadCloser, outStream io.Writer, changes []string) error {
+	return errors.New("not implemented")
+}
 
-	srcs, err := iopodman.SearchImages().Call(context.TODO(), podman, query, limit, filter)
-	if err != nil {
-		WriteError(res, http.StatusInternalServerError, err)
-		return
-	}
-
-	var images []registry.SearchResult
-	for _, src := range srcs {
-		images = append(images, registry.SearchResult{
-			Name:        src.Name,
-			Description: src.Description,
-			IsAutomated: src.Is_automated,
-			IsOfficial:  src.Is_official,
-			StarCount:   int(src.Star_count),
-		})
-	}
-	JSONResponse(res, images)
-}*/
-
-func exportImages(res http.ResponseWriter, names []string, log *log.Entry) {
+func (*imageBackend) ExportImage(names []string, outStream io.Writer) error {
 	// prepare temp file for the tarball
 	tmp, err := ioutil.TempFile("", "dipod-export")
 	if err != nil {
-		log.WithError(err).Error("image export fail")
-		WriteError(res, http.StatusInternalServerError, err)
-		return
+		return err
 	}
 	dest := "docker-archive://" + tmp.Name()
 	err = tmp.Close()
 	if err != nil {
-		log.WithError(err).Error("image export fail")
-		WriteError(res, http.StatusInternalServerError, err)
-		return
+		return err
 	}
 	defer os.Remove(tmp.Name())
 
 	// parse list of image names into name + list of tags
 	ref, err := reference.Parse(names[0])
 	if err != nil {
-		log.WithError(err).Error("image export fail")
-		WriteError(res, http.StatusBadRequest, err)
-		return
+		return err
 	}
 	named, ok := ref.(reference.Named)
 	if !ok {
-		err := errors.New("dipod: main name parse fail")
-		log.WithError(err).Error("image export fail")
-		WriteError(res, http.StatusBadRequest, err)
-		return
+		return errors.New("dipod: main name parse fail")
 	}
 	var tags []string
 	for _, name := range names[1:] {
 		ref, err := reference.Parse(name)
 		if err != nil {
-			log.WithError(err).Error("image export fail")
-			WriteError(res, http.StatusBadRequest, err)
-			return
+			return err
 		}
 		nt, ok := ref.(reference.NamedTagged)
 		if !ok {
-			err := errors.New("dipod: secondary name parse fail")
-			log.WithError(err).Error("image export fail")
-			WriteError(res, http.StatusBadRequest, err)
-			return
+			return errors.New("dipod: secondary name parse fail")
 		}
 		if named.Name() != nt.Name() {
-			err := errors.New("dipod: multiple image export not supported")
-			log.WithError(err).Error("image export fail")
-			WriteError(res, http.StatusNotImplemented, err)
-			return
+			return errors.New("dipod: multiple image export not supported")
 		}
 		tags = append(tags, nt.Tag())
 	}
 
 	_, err = iopodman.ExportImage().Call(context.TODO(), podman, names[0], dest, false, tags)
-	if notFound, ok := err.(*iopodman.ImageNotFound); ok {
-		WriteError(res, http.StatusNotFound, errors.New(notFound.Reason))
-		return
-	}
 	if err != nil {
-		log.WithError(err).Error("image export fail")
-		WriteError(res, http.StatusInternalServerError, err)
-		return
+		return err
 	}
-
 	tmp, err = os.Open(tmp.Name())
 	if err != nil {
-		log.WithError(err).Error("image export fail")
-		WriteError(res, http.StatusInternalServerError, err)
-		return
+		return err
 	}
-
-	res.Header().Set("Content-Type", "application/x-tar")
-	io.Copy(res, tmp)
+	_, err = io.Copy(outStream, tmp)
+	return err
 }
 
-// ImageGet is a handler function for /images/{name}/get.
-func ImageGet(res http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	name, ok := vars["name"]
-	if !ok {
-		log.WithError(errImageName).Error("image export fail")
-		WriteError(res, http.StatusBadRequest, errImageName)
-		return
+func (*imageBackend) PullImage(ctx context.Context, image, tag string, platform *specs.Platform, metaHeaders map[string][]string, authConfig *types.AuthConfig, outStream io.Writer) error {
+	name := image + ":" + tag
+	// no slash => pulling from DockerHub, docker cli shadily strips docker.io/
+	// prefix even if user explicitly specified it
+	if !strings.ContainsAny(name, "/") {
+		name = "docker.io/library/" + name
 	}
-	log := log.WithField("name", name)
-	log.Debug("image export")
 
-	exportImages(res, []string{name}, log)
-}
-
-// ImageGetAll is a handler function for /images/get.
-func ImageGetAll(res http.ResponseWriter, req *http.Request) {
-	err := req.ParseForm()
+	recv, err := iopodman.PullImage().Send(context.TODO(), podman, varlink.More, name)
 	if err != nil {
-		log.WithError(err).Error("image export fail")
-		WriteError(res, http.StatusInternalServerError, err)
-		return
+		return err
 	}
-	names := req.Form["names"]
-	if len(names) == 0 {
-		log.WithError(err).Error("image export fail")
-		WriteError(res, http.StatusInternalServerError, err)
-		return
-	}
-	log := log.WithField("names", names)
-	log.Debug("image bulk export")
 
-	exportImages(res, names, log)
+	json := json.NewEncoder(outStream)
+	for {
+		status, flags, err := recv(context.TODO())
+		if err != nil {
+			return err
+		}
+
+		for _, log := range status.Logs {
+			msg := jsonmessage.JSONMessage{
+				Stream: log,
+				ID:     status.Id,
+			}
+			err = json.Encode(msg)
+			if err != nil {
+				return err
+			}
+		}
+
+		if flags&varlink.Continues != varlink.Continues {
+			break
+		}
+	}
+	return nil
+}
+
+func (*imageBackend) PushImage(ctx context.Context, image, tag string, metaHeaders map[string][]string, authConfig *types.AuthConfig, outStream io.Writer) error {
+	return errors.New("not implemented")
+}
+
+const (
+	isAutomated = "is-automated"
+	isOfficial  = "is-official"
+	valueYes    = "true"
+	valueNo     = "false"
+)
+
+func (*imageBackend) SearchRegistryForImages(ctx context.Context, filtersArgs string, term string, limit int, authConfig *types.AuthConfig, metaHeaders map[string][]string) (res *registry.SearchResults, err error) {
+	var args filters.Args
+	args, err = filters.FromJSON(filtersArgs)
+	if err != nil {
+		return
+	}
+
+	yes := true
+	no := false
+	filter := iopodman.ImageSearchFilter{}
+	if args.Contains(isAutomated) {
+		if args.ExactMatch(isAutomated, valueYes) {
+			filter.Is_automated = &yes
+		}
+		if args.ExactMatch(isAutomated, valueNo) {
+			filter.Is_automated = &no
+		}
+	}
+	if args.Contains(isOfficial) {
+		if args.ExactMatch(isOfficial, valueYes) {
+			filter.Is_official = &yes
+		}
+		if args.ExactMatch(isOfficial, valueNo) {
+			filter.Is_official = &no
+		}
+	}
+	stars := args.Get("stars")
+	if len(stars) > 0 {
+		var starNo int
+		starNo, err = strconv.Atoi(stars[0])
+		if err != nil {
+			return
+		}
+		filter.Star_count = int64(starNo)
+	}
+
+	var images []iopodman.ImageSearchResult
+	limit64 := int64(limit)
+	images, err = iopodman.SearchImages().Call(ctx, podman, term, &limit64, filter)
+	if err != nil {
+		return
+	}
+
+	res = &registry.SearchResults{
+		Query:      term,
+		NumResults: len(images),
+	}
+	for _, image := range images {
+		res.Results = append(res.Results, registry.SearchResult{
+			Name:        image.Name,
+			Description: image.Description,
+			IsAutomated: image.Is_automated,
+			IsOfficial:  image.Is_official,
+			StarCount:   int(image.Star_count),
+		})
+	}
+	return
 }

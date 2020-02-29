@@ -2,14 +2,17 @@ package dipod
 
 import (
 	"net"
-	"net/http"
 
 	"github.com/coreos/go-systemd/activation"
-	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/docker/docker/api/server"
+	"github.com/docker/docker/api/server/router/build"
+	"github.com/docker/docker/api/server/router/image"
+	"github.com/docker/docker/api/server/router/system"
 )
 
-// Serve starts a Moby Engine proxy.
+// Serve starts a Docker Engine proxy.
 func Serve() {
 	var (
 		listeners []net.Listener
@@ -23,38 +26,32 @@ func Serve() {
 	if len(listeners) > 0 {
 		listener = listeners[0]
 	} else {
-		listener, err = net.Listen("unix", MobyUnixAddress)
+		listener, err = net.Listen("unix", DockerUnixAddress)
 		if err != nil {
 			log.WithError(err).Fatal("unix listen fail")
 		}
 	}
 	defer listener.Close()
 	log.WithField("address", listener.Addr()).Info("unix listen")
+	server := server.New(&server.Config{Logging: true, Version: APIVersion})
+	server.Accept("", listener)
 
-	r := mux.NewRouter()
-	// unhandled request
-	r.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
-		log.WithField("uri", req.RequestURI).Warn("not implemented")
-		res.WriteHeader(http.StatusNotImplemented)
-	})
-	// system
-	r.HandleFunc("/_ping", Ping)
-	r.HandleFunc("/v1.26/version", Version)
-	r.HandleFunc("/v1.26/info", SystemInfo)
+	features := make(map[string]bool)
+	// build
+	builds := &buildsBackend{}
+	server.InitRouter(build.NewRouter(builds, nil, &features))
 	// images
-	//r.HandleFunc("/v1.26/images/json", ImageList)
-	r.HandleFunc("/v1.26/build", ImageBuild)
-	r.HandleFunc("/v1.26/images/create", ImageCreate)
-	r.HandleFunc("/v1.26/images/{name}/json", ImageInspect)
-	r.HandleFunc("/v1.26/images/{name}/history", ImageHistory)
-	r.HandleFunc("/v1.26/images/{name}/tag", ImageTag)
-	r.HandleFunc("/v1.26/images/{name}", ImageDelete).Methods("DELETE")
-	//r.HandleFunc("/v1.26/images/search", ImageSearch)
-	r.HandleFunc("/v1.26/images/{name}/get", ImageGet)
-	r.HandleFunc("/v1.26/images/get", ImageGetAll)
+	images := &imageBackend{}
+	server.InitRouter(image.NewRouter(images))
+	// system
+	sys := &systemBackend{}
+	server.InitRouter(system.NewRouter(sys, sys, nil, &features))
 
-	err = http.Serve(listener, r)
+	wait := make(chan error)
+	go server.Wait(wait)
+
+	err = <-wait
 	if err != nil {
-		log.WithError(err).Fatal("http server fail")
+		log.WithError(err).Fatal("docker server fail")
 	}
 }

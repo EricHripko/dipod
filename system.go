@@ -2,13 +2,16 @@ package dipod
 
 import (
 	"context"
+	"errors"
 	"net"
-	"net/http"
 	"runtime"
 	"time"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/events"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/registry"
+	"github.com/docker/docker/api/types/swarm"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/EricHripko/dipod/iopodman"
@@ -16,42 +19,17 @@ import (
 
 const id = "5H6A:ME4Z:MBS5:AEUT:BDYB:MBHM:Y6UI:Y7CZ:DOGT:2CXX:D5RG:BKCP"
 
-// Ping is a handler function for /_ping.
-func Ping(res http.ResponseWriter, req *http.Request) {
-	log.WithField("api-version", APIVersion).Debug("ping")
-	res.Header().Add("API-Version", APIVersion)
-	res.Header().Add("Docker-Experimental", "false")
-	res.WriteHeader(http.StatusOK)
+type systemBackend struct {
 }
 
-// Version is a handler function for /version.
-func Version(res http.ResponseWriter, req *http.Request) {
-	log.WithField("version", Version).Debug("version")
-	ver := types.Version{
-		APIVersion:    APIVersion,
-		Arch:          runtime.GOARCH,
-		BuildTime:     "",
-		Experimental:  false,
-		GitCommit:     "",
-		GoVersion:     runtime.Version(),
-		KernelVersion: "n/a",
-		MinAPIVersion: APIVersion,
-		Os:            runtime.GOOS,
-		Version:       ProxyVersion + "-dipod",
-	}
-	JSONResponse(res, ver)
-}
-
-// SystemInfo is a handler function for /info.
-func SystemInfo(res http.ResponseWriter, req *http.Request) {
-	log.Debug("system info")
-	backend, err := iopodman.GetInfo().Call(context.TODO(), podman)
+func (*systemBackend) SystemInfo() (info *types.Info, err error) {
+	var backend iopodman.PodmanInfo
+	backend, err = iopodman.GetInfo().Call(context.TODO(), podman)
 	if err != nil {
-		WriteError(res, http.StatusInternalServerError, err)
 		return
 	}
 
-	info := types.Info{
+	info = &types.Info{
 		Architecture:      backend.Host.Arch,
 		BridgeNfIP6tables: true,
 		BridgeNfIptables:  true,
@@ -103,5 +81,40 @@ func SystemInfo(res http.ResponseWriter, req *http.Request) {
 			&netipnet,
 		)
 	}
-	JSONResponse(res, info)
+	return
+}
+
+func (*systemBackend) SystemVersion() types.Version {
+	return types.Version{
+		APIVersion:    APIVersion,
+		Arch:          runtime.GOARCH,
+		BuildTime:     "",
+		Experimental:  false,
+		GitCommit:     "",
+		GoVersion:     runtime.Version(),
+		KernelVersion: "n/a",
+		MinAPIVersion: APIVersion,
+		Os:            runtime.GOOS,
+		Version:       ProxyVersion + "-dipod",
+	}
+}
+
+func (*systemBackend) SystemDiskUsage(ctx context.Context) (*types.DiskUsage, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (*systemBackend) SubscribeToEvents(since, until time.Time, ef filters.Args) ([]events.Message, chan interface{}) {
+	return nil, nil
+}
+
+func (*systemBackend) UnsubscribeFromEvents(chan interface{}) {
+
+}
+
+func (*systemBackend) AuthenticateToRegistry(ctx context.Context, authConfig *types.AuthConfig) (string, string, error) {
+	return "", "", nil
+}
+
+func (*systemBackend) Info() swarm.Info {
+	return swarm.Info{}
 }

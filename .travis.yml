@@ -1,62 +1,20 @@
 dist: xenial
 language: go
 go:
-- 1.11.x
-- 1.12.x
-env:
- - GO111MODULE=on
+  - 1.11.x
+  - 1.12.x
 before_install:
   # Install Docker CLI
   - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
   - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable" -y
   - sudo apt-get update -q
   - sudo apt-get install docker-ce-cli -y
-  
-  # podman doesn't currently ship with varlink interface
-  # https://github.com/containers/libpod/issues/3027
-  # Have to build it from scratch...
-  # This is horrible and I'm sorry for everything :(
-  - sudo add-apt-repository ppa:kubuntu-ppa/backports -y
-  - sudo apt-get update -q
-  # ^- for libgpgme-dev
-  - wget http://packages.linuxmint.com/pool/main/l/linuxmint-keyring/linuxmint-keyring_2016.05.26_all.deb
-  - sudo dpkg -i linuxmint-keyring_2016.05.26_all.deb
-  - sudo add-apt-repository "deb http://packages.linuxmint.com/ sylvia import" -y
-  - sudo apt-get update -q
-  # ^- for libostree-dev
-  - >
-    sudo apt-get install
-    bats
-    btrfs-tools
-    git
-    go-md2man
-    iptables
-    jq
-    libassuan-dev
-    libc6-dev
-    libdevmapper-dev
-    libglib2.0-dev
-    libgpgme-dev
-    libgpg-error-dev
-    libostree-dev
-    libprotobuf-dev
-    libprotobuf-c0-dev
-    libseccomp-dev
-    libselinux1-dev
-    libsystemd-dev
-    pkg-config
-    runc
-    uidmap -y
-  - git clone https://github.com/containers/libpod/ $GOPATH/src/github.com/containers/libpod
-  - cd $GOPATH/src/github.com/containers/libpod
-  - make BUILDTAGS="selinux seccomp varlink systemd"
-  - sudo "PATH=$PATH" make install PREFIX=/usr
   - sudo mkdir -p /etc/containers
   - sudo curl https://raw.githubusercontent.com/containers/skopeo/master/default-policy.json -o /etc/containers/policy.json
   # Install podman runtime dependencies
   - sudo add-apt-repository ppa:projectatomic/ppa -y
   - sudo apt-get update -q
-  - sudo apt-get install conmon -y
+  - sudo apt-get install podman -y
 
   # Ensure we're in the directory with our sources
   - cd $TRAVIS_BUILD_DIR
