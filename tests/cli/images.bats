@@ -463,3 +463,35 @@ function cleanup {
     # Assert
     [[ "$status" -ne 0 ]]
 }
+
+@test "images: prune dangling" {
+    # Arrange
+    unused=docker.io/library/ubuntu
+    podman pull $unused
+    untagged=$(podman build $BATS_TEST_DIRNAME/images-list-labels --quiet)
+
+    # Act
+    run docker image prune --force
+    echo $output
+
+    # Assert
+    [[ "$status" -eq 0 ]]
+    [[ "$(podman images --filter="reference=$unused" --quiet)" != "" ]]
+    [[ "$(podman images --filter="reference=$untagged" --quiet)" == "" ]]
+}
+
+@test "images: prune all" {
+    # Arrange
+    unused=docker.io/library/ubuntu
+    podman pull $unused
+    untagged=$(podman build $BATS_TEST_DIRNAME/images-list-labels --quiet)
+
+    # Act
+    run docker image prune --force --all
+    echo $output
+
+    # Assert
+    [[ "$status" -eq 0 ]]
+    [[ "$(podman images --filter="reference=$unused" --quiet)" == "" ]]
+    [[ "$(podman images --filter="reference=$untagged" --quiet)" == "" ]]
+}
