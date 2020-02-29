@@ -292,8 +292,31 @@ func (*imageBackend) TagImage(imageName, repository, tag string) (out string, er
 	return
 }
 
-func (*imageBackend) ImagesPrune(ctx context.Context, pruneFilters filters.Args) (*types.ImagesPruneReport, error) {
-	return nil, errors.New("not implemented")
+const (
+	onlyDangling = "dangling"
+)
+
+func (*imageBackend) ImagesPrune(ctx context.Context, pruneFilters filters.Args) (report *types.ImagesPruneReport, err error) {
+	all := false
+	if pruneFilters.Contains(onlyDangling) {
+		if pruneFilters.ExactMatch(onlyDangling, valueNo) {
+			all = true
+		}
+	}
+
+	var pruned []string
+	pruned, err = iopodman.ImagesPrune().Call(ctx, podman, all)
+	if err != nil {
+		return
+	}
+
+	report = &types.ImagesPruneReport{}
+	for _, image := range pruned {
+		report.ImagesDeleted = append(report.ImagesDeleted, types.ImageDeleteResponseItem{
+			Deleted: image,
+		})
+	}
+	return
 }
 
 func (*imageBackend) LoadImage(inTar io.ReadCloser, outStream io.Writer, quiet bool) error {
