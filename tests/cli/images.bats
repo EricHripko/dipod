@@ -358,6 +358,8 @@ function cleanup {
 }
 
 @test "images: image search" {
+    skip "DockerHub is flaky"
+
     # Arrange
     image=ubuntu
 
@@ -371,6 +373,8 @@ function cleanup {
 }
 
 @test "images: image search by stars" {
+    skip "DockerHub is flaky"
+
     # Arrange
     image=ubuntu
     stars=5000
@@ -386,6 +390,8 @@ function cleanup {
 }
 
 @test "images: image search by official status" {
+    skip "DockerHub is flaky"
+
     # Arrange
     image=ubuntu
 
@@ -400,6 +406,8 @@ function cleanup {
 }
 
 @test "images: image search by automation" {
+    skip "DockerHub is flaky"
+
     # Arrange
     image=ubuntu
 
