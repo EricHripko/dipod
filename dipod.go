@@ -2,6 +2,7 @@ package dipod
 
 import (
 	"context"
+	"errors"
 
 	"github.com/EricHripko/dipod/iopodman"
 )
@@ -22,5 +23,9 @@ const MinAPIVersion = "1.12"
 
 // ProxyVersion identified the dipod version.
 const ProxyVersion = "0.0.1"
+
+// ErrNotImplemented is returned when functionality requested was not
+// implemented yet.
+var ErrNotImplemented = errors.New("dipod: not implemented")
 
 type recvFunc func(ctx context.Context) (iopodman.MoreResponse, uint64, error)

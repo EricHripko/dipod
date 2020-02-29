@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -19,7 +20,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/pkg/jsonmessage"
+	"github.com/docker/docker/pkg/streamformatter"
 	"github.com/docker/go-connections/nat"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
 	log "github.com/sirupsen/logrus"
@@ -320,7 +321,44 @@ func (*imageBackend) ImagesPrune(ctx context.Context, pruneFilters filters.Args)
 }
 
 func (*imageBackend) LoadImage(inTar io.ReadCloser, outStream io.Writer, quiet bool) error {
-	return errors.New("not implemented")
+	outStream = streamformatter.NewStdoutWriter(outStream)
+
+	// stash context tarball to a temp file
+	importContext, err := ioutil.TempFile("", "dipod-import")
+	if err != nil {
+		return err
+	}
+	io.Copy(importContext, inTar)
+	defer inTar.Close()
+	defer os.Remove(importContext.Name())
+
+	// import
+	recv, err := iopodman.LoadImage().Send(context.Background(), podman, varlink.More, "", importContext.Name(), quiet, false)
+	if err != nil {
+		return err
+	}
+	for {
+		var status iopodman.MoreResponse
+		var flags uint64
+		status, flags, err = recv(context.Background())
+		if err != nil {
+			return err
+		}
+
+		for _, log := range status.Logs {
+			_, err = outStream.Write([]byte(log))
+			if err != nil {
+				return err
+			}
+		}
+
+		if flags&varlink.Continues != varlink.Continues {
+			fmt.Fprintf(outStream, "Loaded image: %s\n", status.Id)
+			break
+		}
+	}
+
+	return nil
 }
 
 func (*imageBackend) ImportImage(src string, repository, platform string, tag string, msg string, inConfig io.ReadCloser, outStream io.Writer, changes []string) error {
@@ -378,6 +416,7 @@ func (*imageBackend) ExportImage(names []string, outStream io.Writer) error {
 }
 
 func (*imageBackend) PullImage(ctx context.Context, image, tag string, platform *specs.Platform, metaHeaders map[string][]string, authConfig *types.AuthConfig, outStream io.Writer) error {
+	outStream = streamformatter.NewStdoutWriter(outStream)
 	name := image + ":" + tag
 	// no slash => pulling from DockerHub, docker cli shadily strips docker.io/
 	// prefix even if user explicitly specified it
@@ -390,7 +429,6 @@ func (*imageBackend) PullImage(ctx context.Context, image, tag string, platform 
 		return err
 	}
 
-	json := json.NewEncoder(outStream)
 	for {
 		status, flags, err := recv(context.TODO())
 		if err != nil {
@@ -398,11 +436,7 @@ func (*imageBackend) PullImage(ctx context.Context, image, tag string, platform 
 		}
 
 		for _, log := range status.Logs {
-			msg := jsonmessage.JSONMessage{
-				Stream: log,
-				ID:     status.Id,
-			}
-			err = json.Encode(msg)
+			_, err = outStream.Write([]byte(log))
 			if err != nil {
 				return err
 			}
