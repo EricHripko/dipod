@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/docker/docker/api/server"
+	"github.com/docker/docker/api/server/middleware"
 	"github.com/docker/docker/api/server/router/build"
 	"github.com/docker/docker/api/server/router/image"
 	"github.com/docker/docker/api/server/router/system"
@@ -46,6 +47,11 @@ func Serve() {
 	// system
 	sys := &systemBackend{}
 	server.InitRouter(system.NewRouter(sys, sys, nil, &features))
+
+	// middleware
+	server.UseMiddleware(
+		middleware.NewVersionMiddleware(ProxyVersion, APIVersion, MinAPIVersion),
+	)
 
 	wait := make(chan error)
 	go server.Wait(wait)

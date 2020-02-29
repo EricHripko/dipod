@@ -93,7 +93,7 @@ func (*systemBackend) SystemVersion() types.Version {
 		GitCommit:     "",
 		GoVersion:     runtime.Version(),
 		KernelVersion: "n/a",
-		MinAPIVersion: APIVersion,
+		MinAPIVersion: MinAPIVersion,
 		Os:            runtime.GOOS,
 		Version:       ProxyVersion + "-dipod",
 	}

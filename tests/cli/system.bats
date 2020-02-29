@@ -8,7 +8,7 @@
     # Assert
     [[ "$(jq -r ".Version" <<< $output)" =~ dipod$ ]]
     [[ "$(jq -r ".ApiVersion" <<< $output)" == "1.40" ]]
-    [[ "$(jq -r ".MinAPIVersion" <<< $output)" == "1.40" ]]
+    [[ "$(jq -r ".MinAPIVersion" <<< $output)" == "1.12" ]]
     [[ "$(jq -r ".Os" <<< $output)" == "linux" ]]
     [[ "$(jq -r ".Arch" <<< $output)" == "amd64" ]]
 
@@ -16,7 +16,7 @@
     [[ "$(jq -r ".Name" <<< $component)" == "Engine" ]]
     [[ "$(jq -r ".Version" <<< $component)" =~ dipod$ ]]
     [[ "$(jq -r ".Details.ApiVersion" <<< $component)" == "1.40" ]]
-    [[ "$(jq -r ".Details.MinAPIVersion" <<< $component)" == "1.40" ]]
+    [[ "$(jq -r ".Details.MinAPIVersion" <<< $component)" == "1.12" ]]
     [[ "$(jq -r ".Details.Os" <<< $component)" == "linux" ]]
     [[ "$(jq -r ".Details.Arch" <<< $component)" == "amd64" ]]
 }
